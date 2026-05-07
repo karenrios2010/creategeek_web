@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InstaShoper — Tu Personal Shopper en USA</title>
+  <meta name="description" content="Compra cualquier producto en EE.UU. y recíbelo en tu puerta. InstaShoper gestiona la compra, empaque y envío internacional por ti." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── RESET ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ─── TOKENS ─── */
+    :root {
+      --color-warm-canvas: #fbfaf9;
+      --color-stone-surface: #f2f0ed;
+      --color-parchment-card: #f8f7f4;
+      --color-graphite: #474645;
+      --color-charcoal-primary: #343433;
+      --color-midnight: #121212;
+      --color-obsidian: #000000;
+      --color-ash: #848281;
+      --color-fog: #c6c6c6;
+      --color-smoke: #a7a7a7;
+      --color-pepper: #282624;
+      --color-ember-orange: #ff3e00;
+      --color-meadow-green: #00ca48;
+      --color-sky-blue: #0090ff;
+      --color-sunburst-yellow: #ffbb26;
+      --color-deep-amber: #d48f00;
+      --color-ice-blue: #64c6ff;
+      --color-spearmint: #00c978;
+      --color-flamingo: #ff58ae;
+      --color-violet-pop: #9f4fff;
+      --color-coral-red: #ff2b3a;
+
+      --font-display: 'Fraunces', 'Georgia', serif;
+      --font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+      --text-caption: 12px;
+      --text-body: 15px;
+      --text-heading-sm: 19px;
+      --text-heading: 23px;
+      --text-heading-lg: 44px;
+      --text-display: 68px;
+
+      --radius-tags: 6px;
+      --radius-cards: 10px;
+      --radius-icons: 40px;
+      --radius-inputs: 10px;
+      --radius-buttons: 32px;
+      --radius-cards-lg: 24px;
+
+      --shadow-card: color(display-p3 0.94902 0.941176 0.929412) 0px 0px 0px 1px inset;
+      --shadow-card-fallback: #f2f0ed 0px 0px 0px 1px inset;
+      --shadow-nav: rgba(0,0,0,0.04) 0px 0px 0px 1px;
+      --shadow-lg: rgba(0,0,0,0.15) 0px 0px 24px 0px;
+      --shadow-sm: rgba(0,0,0,0.04) 0px 1px 6px 0px, rgba(0,0,0,0.05) 0px 0px 24px 0px;
+
+      --page-max: 1200px;
+    }
+
+    /* ─── BASE ─── */
+    body {
+      background-color: var(--color-warm-canvas);
+      color: var(--color-graphite);
+      font-family: var(--font-ui);
+      font-size: var(--text-body);
+      line-height: 1.47;
+      letter-spacing: -0.2px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: var(--page-max);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-8px) rotate(2deg); }
+      66% { transform: translateY(-4px) rotate(-1deg); }
+    }
+    @keyframes floatB {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      40% { transform: translateY(-12px) rotate(-3deg); }
+      70% { transform: translateY(-6px) rotate(2deg); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes bounce-in {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .float-a { animation: float 4s ease-in-out infinite; }
+    .float-b { animation: floatB 5.5s ease-in-out infinite; }
+    .float-c { animation: float 6s ease-in-out infinite 1s; }
+    .float-d { animation: floatB 4.5s ease-in-out infinite 0.5s; }
+    .float-e { animation: float 7s ease-in-out infinite 2s; }
+
+    /* ─── NAV ─── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--color-warm-canvas);
+      box-shadow: var(--shadow-nav);
+      height: 64px;
+      display: flex;
+      align-items: center;
+    }
+    .nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--color-charcoal-primary);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--color-midnight);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--color-charcoal-primary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.18px;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--color-ember-orange); }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-dark {
+      background: var(--color-midnight);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-buttons);
+      padding: 10px 20px;
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease, transform 0.15s ease;
+      letter-spacing: -0.18px;
+    }
+    .btn-dark:hover { background: var(--color-charcoal-primary); transform: translateY(-1px); }
+    .btn-light {
+      background: #f6f4ef;
+      color: var(--color-midnight);
+      border: none;
+      border-radius: var(--radius-buttons);
+      padding: 10px 20px;
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease;
+      letter-spacing: -0.18px;
+    }
+    .btn-light:hover { background: var(--color-stone-surface); }
+    .nav-burger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding-top: 140px;
+      padding-bottom: 100px;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero-inner {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-tags);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-graphite);
+      letter-spacing: -0.14px;
+      margin-bottom: 28px;
+      animation: fadeIn 0.6s ease both;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--color-meadow-green);
+      flex-shrink: 0;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(44px, 7vw, 68px);
+      font-weight: 500;
+      line-height: 1.09;
+      letter-spacing: -2.11px;
+      color: var(--color-charcoal-primary);
+      max-width: 760px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.7s cubic-bezier(0.19,1,0.22,1) 0.1s both;
+    }
+    .hero-title span { color: var(--color-ember-orange); }
+    .hero-sub {
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.55;
+      letter-spacing: -0.22px;
+      color: var(--color-graphite);
+      max-width: 480px;
+      margin-bottom: 36px;
+      animation: fadeUp 0.7s cubic-bezier(0.19,1,0.22,1) 0.2s both;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.7s cubic-bezier(0.19,1,0.22,1) 0.3s both;
+    }
+    .btn-dark-lg {
+      background: var(--color-midnight);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-buttons);
+      padding: 14px 28px;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, transform 0.15s ease;
+      letter-spacing: -0.2px;
+    }
+    .btn-dark-lg:hover { background: #2a2a2a; transform: translateY(-2px); }
+    .btn-link-orange {
+      color: var(--color-ember-orange);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.2px;
+      transition: opacity 0.2s ease;
+      padding: 14px 4px;
+    }
+    .btn-link-orange:hover { opacity: 0.75; }
+
+    /* ─── ILLUSTRATION CHARACTERS ─── */
+    .hero-illustrations {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+    }
+    .char {
+      position: absolute;
+    }
+
+    /* ─── TRUST STRIP ─── */
+    .trust-strip {
+      padding: 20px 0;
+      border-top: 1px solid var(--color-stone-surface);
+      border-bottom: 1px solid var(--color-stone-surface);
+      overflow: hidden;
+      margin-top: 60px;
+    }
+    .trust-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-ash);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.17px;
+      white-space: nowrap;
+    }
+    .trust-icon {
+      width: 20px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .section { padding: 120px 0; }
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--color-ember-orange);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 44px);
+      font-weight: 500;
+      line-height: 1.09;
+      letter-spacing: -1.14px;
+      color: var(--color-midnight);
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 17px;
+      line-height: 1.55;
+      letter-spacing: -0.22px;
+      color: var(--color-graphite);
+      max-width: 520px;
+    }
+    .section-header { margin-bottom: 64px; }
+    .section-header.centered { text-align: center; }
+    .section-header.centered .section-sub { margin: 0 auto; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      background: var(--color-stone-surface);
+      border-radius: var(--radius-cards-lg);
+      overflow: hidden;
+    }
+    .step-card {
+      background: var(--color-warm-canvas);
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: background 0.2s ease;
+    }
+    .step-card:first-child { border-radius: var(--radius-cards-lg) 0 0 var(--radius-cards-lg); }
+    .step-card:last-child  { border-radius: 0 var(--radius-cards-lg) var(--radius-cards-lg) 0; }
+    .step-num {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-ash);
+      letter-spacing: 1px;
+    }
+    .step-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: var(--radius-icons);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: var(--text-heading-sm);
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.25px;
+      line-height: 1.3;
+    }
+    .step-desc {
+      font-size: 14px;
+      color: var(--color-graphite);
+      line-height: 1.55;
+      letter-spacing: -0.18px;
+    }
+
+    /* ─── CATEGORIES ─── */
+    .categories-section { padding: 0 0 120px; }
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .cat-card {
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-cards);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+      cursor: default;
+    }
+    .cat-card:hover {
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-2px);
+    }
+    .cat-icon-wrap {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .cat-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.22px;
+    }
+    .cat-desc {
+      font-size: 14px;
+      color: var(--color-graphite);
+      line-height: 1.55;
+      letter-spacing: -0.18px;
+    }
+    .cat-examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .cat-tag {
+      background: var(--color-parchment-card);
+      border-radius: var(--radius-tags);
+      padding: 3px 10px;
+      font-size: 12px;
+      color: var(--color-ash);
+      font-weight: 500;
+      letter-spacing: -0.14px;
+    }
+
+    /* ─── FEATURES / WHY ─── */
+    .features-section { padding: 0 0 120px; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .feature-card {
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-cards);
+      padding: 32px;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .feature-card:hover {
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-2px);
+    }
+    .feature-card.featured {
+      background: var(--color-midnight);
+      color: #fff;
+      grid-column: span 2;
+    }
+    .feature-card.featured .feat-title { color: #fff; }
+    .feature-card.featured .feat-desc { color: rgba(255,255,255,0.65); }
+    .feat-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    .feat-title {
+      font-size: var(--text-heading-sm);
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.25px;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .feat-desc {
+      font-size: 15px;
+      color: var(--color-graphite);
+      line-height: 1.55;
+      letter-spacing: -0.2px;
+    }
+    .feat-big-number {
+      font-family: var(--font-display);
+      font-size: clamp(56px, 8vw, 80px);
+      font-weight: 500;
+      color: var(--color-ember-orange);
+      line-height: 1;
+      letter-spacing: -3px;
+      margin-top: 20px;
+    }
+
+    /* ─── PRICE SECTION ─── */
+    .pricing-section { padding: 0 0 120px; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .price-card {
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-cards-lg);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .price-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+    .price-card.popular {
+      background: var(--color-midnight);
+      color: #fff;
+      position: relative;
+    }
+    .popular-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-ember-orange);
+      color: #fff;
+      border-radius: var(--radius-tags);
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .price-tier {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-ash);
+    }
+    .price-card.popular .price-tier { color: rgba(255,255,255,0.5); }
+    .price-amount {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .price-currency {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+    }
+    .price-card.popular .price-currency { color: #fff; }
+    .price-num {
+      font-family: var(--font-display);
+      font-size: 48px;
+      font-weight: 500;
+      line-height: 1;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -2px;
+    }
+    .price-card.popular .price-num { color: #fff; }
+    .price-note {
+      font-size: 13px;
+      color: var(--color-ash);
+      letter-spacing: -0.17px;
+    }
+    .price-card.popular .price-note { color: rgba(255,255,255,0.45); }
+    .price-desc {
+      font-size: 15px;
+      color: var(--color-graphite);
+      line-height: 1.55;
+      letter-spacing: -0.2px;
+    }
+    .price-card.popular .price-desc { color: rgba(255,255,255,0.7); }
+    .price-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+    .price-feat-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--color-graphite);
+      letter-spacing: -0.18px;
+      line-height: 1.4;
+    }
+    .price-card.popular .price-feat-item { color: rgba(255,255,255,0.75); }
+    .price-check {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--color-meadow-green);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .price-card.popular .price-check { background: var(--color-spearmint); }
+    .price-cta {
+      width: 100%;
+      background: var(--color-midnight);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-buttons);
+      padding: 14px 20px;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s ease, transform 0.15s ease;
+      letter-spacing: -0.2px;
+    }
+    .price-cta:hover { background: #2a2a2a; transform: translateY(-1px); }
+    .price-card.popular .price-cta {
+      background: #fff;
+      color: var(--color-midnight);
+    }
+    .price-card.popular .price-cta:hover { background: #f0f0f0; }
+
+    /* ─── CALCULATOR ─── */
+    .calc-section { padding: 0 0 120px; }
+    .calc-card {
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-cards-lg);
+      padding: 48px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .calc-title {
+      font-size: var(--text-heading);
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.44px;
+      margin-bottom: 8px;
+    }
+    .calc-sub {
+      font-size: 15px;
+      color: var(--color-ash);
+      margin-bottom: 32px;
+      letter-spacing: -0.2px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.17px;
+    }
+    .form-input, .form-select {
+      background: var(--color-parchment-card);
+      border: 1px solid var(--color-stone-surface);
+      border-radius: var(--radius-inputs);
+      padding: 12px 14px;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.2px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--color-sky-blue);
+      box-shadow: 0 0 0 3px rgba(0,144,255,0.12);
+    }
+    .calc-result {
+      margin-top: 24px;
+      padding: 20px 24px;
+      background: var(--color-parchment-card);
+      border-radius: var(--radius-cards);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .calc-result-label {
+      font-size: 14px;
+      color: var(--color-ash);
+      font-weight: 500;
+    }
+    .calc-result-amount {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -1.5px;
+    }
+
+    /* ─── TESTIMONIALS ─── */
+    .testimonials-section { padding: 0 0 120px; }
+    .testimonials-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .testi-card {
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-cards);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: box-shadow 0.2s ease;
+    }
+    .testi-card:hover { box-shadow: var(--shadow-sm); }
+    .testi-stars { display: flex; gap: 2px; }
+    .testi-quote {
+      font-size: 15px;
+      color: var(--color-graphite);
+      line-height: 1.6;
+      letter-spacing: -0.2px;
+      flex: 1;
+    }
+    .testi-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: auto;
+    }
+    .testi-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .testi-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.18px;
+    }
+    .testi-handle {
+      font-size: 13px;
+      color: var(--color-ash);
+      letter-spacing: -0.17px;
+    }
+
+    /* ─── FAQ ─── */
+    .faq-section { padding: 0 0 120px; }
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .faq-item {
+      background: #fff;
+      box-shadow: var(--shadow-card-fallback);
+      border-radius: var(--radius-cards);
+      padding: 24px 28px;
+      cursor: pointer;
+      transition: box-shadow 0.2s ease;
+    }
+    .faq-item:hover { box-shadow: var(--shadow-sm); }
+    .faq-q {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .faq-arrow {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s ease;
+      color: var(--color-ash);
+    }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-a {
+      font-size: 14px;
+      color: var(--color-graphite);
+      line-height: 1.65;
+      letter-spacing: -0.18px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, margin-top 0.3s ease;
+    }
+    .faq-item.open .faq-a {
+      max-height: 200px;
+      margin-top: 12px;
+    }
+
+    /* ─── CTA FINAL ─── */
+    .cta-section { padding: 0 0 120px; }
+    .cta-card {
+      background: var(--color-midnight);
+      border-radius: var(--radius-cards-lg);
+      padding: 80px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-card-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,62,0,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cta-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--color-ember-orange);
+      margin-bottom: 16px;
+    }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 52px);
+      font-weight: 500;
+      line-height: 1.09;
+      letter-spacing: -1.5px;
+      color: #fff;
+      max-width: 600px;
+      margin: 0 auto 20px;
+    }
+    .cta-sub {
+      font-size: 17px;
+      color: rgba(255,255,255,0.6);
+      max-width: 440px;
+      margin: 0 auto 40px;
+      line-height: 1.55;
+      letter-spacing: -0.22px;
+    }
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .btn-white {
+      background: #fff;
+      color: var(--color-midnight);
+      border: none;
+      border-radius: var(--radius-buttons);
+      padding: 14px 28px;
+      font-family: var(--font-ui);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, transform 0.15s ease;
+      letter-spacing: -0.2px;
+    }
+    .btn-white:hover { background: #f0f0f0; transform: translateY(-1px); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--color-stone-surface);
+      padding: 48px 0 32px;
+    }
+    .footer-inner {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 48px;
+    }
+    .footer-brand p {
+      font-size: 14px;
+      color: var(--color-ash);
+      line-height: 1.6;
+      letter-spacing: -0.18px;
+      margin-top: 12px;
+      max-width: 260px;
+    }
+    .footer-col-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-charcoal-primary);
+      letter-spacing: -0.17px;
+      margin-bottom: 14px;
+    }
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-links a {
+      font-size: 14px;
+      color: var(--color-ash);
+      text-decoration: none;
+      letter-spacing: -0.18px;
+      transition: color 0.2s ease;
+    }
+    .footer-links a:hover { color: var(--color-charcoal-primary); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-stone-surface);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-copy {
+      font-size: 13px;
+      color: var(--color-fog);
+      letter-spacing: -0.17px;
+    }
+    .footer-legal {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-legal a {
+      font-size: 13px;
+      color: var(--color-fog);
+      text-decoration: none;
+      letter-spacing: -0.17px;
+      transition: color 0.2s ease;
+    }
+    .footer-legal a:hover { color: var(--color-ash); }
+
+    /* ─── WHATSAPP FAB ─── */
+    .whatsapp-fab {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 200;
+      width: 56px; height: 56px;
+      background: #25D366;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: rgba(0,0,0,0.2) 0px 4px 16px;
+      text-decoration: none;
+      transition: transform 0.2s cubic-bezier(0.19,1,0.22,1), box-shadow 0.2s ease;
+    }
+    .whatsapp-fab:hover {
+      transform: scale(1.1);
+      box-shadow: rgba(0,0,0,0.25) 0px 8px 24px;
+    }
+
+    /* ─── SCROLL ANIMATION ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.19,1,0.22,1), transform 0.6s cubic-bezier(0.19,1,0.22,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── MOBILE NAV ─── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: var(--color-warm-canvas);
+      box-shadow: var(--shadow-sm);
+      padding: 20px 24px;
+      z-index: 99;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--color-charcoal-primary);
+      text-decoration: none;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-stone-surface);
+    }
+    .mobile-nav a:last-of-type { border-bottom: none; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .step-card:first-child { border-radius: var(--radius-cards-lg) var(--radius-cards-lg) 0 0; }
+      .step-card:nth-child(2) { border-radius: 0; }
+      .step-card:nth-child(3) { border-radius: 0; }
+      .step-card:last-child  { border-radius: 0 0 var(--radius-cards-lg) var(--radius-cards-lg); }
+      .categories-grid { grid-template-columns: 1fr 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card.featured { grid-column: 1; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+      .testimonials-row { grid-template-columns: 1fr; }
+      .faq-grid { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-links, .nav-actions { display: none; }
+      .nav-burger { display: flex; }
+      .hero { padding-top: 100px; }
+      .hero-title { font-size: 40px; letter-spacing: -1.4px; }
+      .section { padding: 80px 0; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .step-card:first-child { border-radius: var(--radius-cards-lg) var(--radius-cards-lg) 0 0; }
+      .step-card:nth-child(2), .step-card:nth-child(3) { border-radius: 0; }
+      .step-card:last-child { border-radius: 0 0 var(--radius-cards-lg) var(--radius-cards-lg); }
+      .categories-grid { grid-template-columns: 1fr; }
+      .cta-card { padding: 48px 24px; }
+      .footer-inner { grid-template-columns: 1fr; gap: 28px; }
+      .calc-card { padding: 28px 20px; }
+      .char { display: none; }
+      .trust-inner { gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav class="nav">
+  <div class="container">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" fill="white" opacity="0.9"/>
+          <circle cx="9" cy="9" r="2.5" fill="#ff3e00"/>
+        </svg>
+      </div>
+      InstaShoper
+    </a>
+    <ul class="nav-links">
+      <li><a href="#como-funciona">Cómo funciona</a></li>
+      <li><a href="#categorias">Qué compramos</a></li>
+      <li><a href="#precios">Precios</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://wa.me/1XXXXXXXXXX" class="btn-light" target="_blank">WhatsApp</a>
+      <a href="#precios" class="btn-dark">Pedir ahora →</a>
+    </div>
+    <button class="nav-burger" id="burgerBtn" aria-label="Menú">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <rect x="2" y="5" width="18" height="2" rx="1" fill="#343433"/>
+        <rect x="2" y="10" width="18" height="2" rx="1" fill="#343433"/>
+        <rect x="2" y="15" width="18" height="2" rx="1" fill="#343433"/>
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+  <a href="#como-funciona" onclick="closeMobileNav()">Cómo funciona</a>
+  <a href="#categorias" onclick="closeMobileNav()">Qué compramos</a>
+  <a href="#precios" onclick="closeMobileNav()">Precios</a>
+  <a href="#faq" onclick="closeMobileNav()">FAQ</a>
+  <a href="https://wa.me/1XXXXXXXXXX" target="_blank" style="color:var(--color-ember-orange)">Escribir por WhatsApp →</a>
+</div>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+
+      <!-- Floating characters -->
+      <div class="hero-illustrations" aria-hidden="true">
+
+        <!-- Orange blob (top left) -->
+        <div class="char float-a" style="top:-10px; left:3%;">
+          <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+            <path d="M44 8C55 6 68 14 72 26C76 38 74 54 64 63C54 72 36 74 24 66C12 58 8 42 12 28C16 14 33 10 44 8Z" fill="#ff3e00"/>
+            <circle cx="34" cy="38" r="4" fill="#282624"/>
+            <circle cx="52" cy="35" r="4" fill="#282624"/>
+            <path d="M36 50 Q45 57 54 50" stroke="#282624" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <line x1="28" y1="65" x2="20" y2="80" stroke="#ff3e00" stroke-width="4" stroke-linecap="round"/>
+            <line x1="60" y1="67" x2="70" y2="80" stroke="#ff3e00" stroke-width="4" stroke-linecap="round"/>
+            <line x1="45" y1="8" x2="45" y2="-4" stroke="#ff3e00" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <!-- Green blob (top right) -->
+        <div class="char float-b" style="top:-20px; right:4%;">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <path d="M40 6C52 5 64 15 67 28C70 41 65 56 53 63C41 70 24 68 14 57C4 46 5 28 16 18C27 8 28 7 40 6Z" fill="#00ca48"/>
+            <circle cx="30" cy="34" r="3.5" fill="#121212"/>
+            <circle cx="48" cy="31" r="3.5" fill="#121212"/>
+            <path d="M32 47 Q40 53 48 47" stroke="#121212" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <line x1="20" y1="58" x2="12" y2="72" stroke="#00ca48" stroke-width="4" stroke-linecap="round"/>
+            <line x1="56" y1="60" x2="64" y2="74" stroke="#00ca48" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <!-- Blue blob (left middle) -->
+        <div class="char float-c" style="top:60px; left:10%;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <path d="M32 5C42 4 52 12 54 22C56 32 50 44 40 49C30 54 16 51 9 42C2 33 5 18 15 11C25 4 22 6 32 5Z" fill="#0090ff"/>
+            <circle cx="24" cy="28" r="3" fill="#121212"/>
+            <circle cx="39" cy="26" r="3" fill="#121212"/>
+            <path d="M26 38 Q32 43 38 38" stroke="#121212" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <line x1="14" y1="48" x2="8" y2="60" stroke="#0090ff" stroke-width="3.5" stroke-linecap="round"/>
+            <line x1="48" y1="48" x2="55" y2="60" stroke="#0090ff" stroke-width="3.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <!-- Yellow star (right middle) -->
+        <div class="char float-d" style="top:40px; right:12%;">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <path d="M26 4L30.5 18.5H46L33.5 27.5L38 42L26 33L14 42L18.5 27.5L6 18.5H21.5L26 4Z" fill="#ffbb26" stroke="#d48f00" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <!-- Shopping cart icon (right) -->
+        <div class="char float-b" style="top:20px; right:20%;">
+          <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+            <rect x="4" y="4" width="48" height="48" rx="16" fill="#ff58ae"/>
+            <path d="M14 18H16L20 34H38L42 22H20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="24" cy="38" r="2" fill="white"/>
+            <circle cx="36" cy="38" r="2" fill="white"/>
+          </svg>
+        </div>
+
+        <!-- Small coin (far left) -->
+        <div class="char float-e" style="top:120px; left:5%;">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="18" fill="#ffbb26" stroke="#d48f00" stroke-width="2"/>
+            <text x="20" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#d48f00">$</text>
+          </svg>
+        </div>
+
+        <!-- Package box (far right) -->
+        <div class="char float-a" style="top:130px; right:5%;">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="4" y="16" width="40" height="28" rx="4" fill="#64c6ff"/>
+            <rect x="4" y="8" width="40" height="10" rx="4" fill="#0090ff"/>
+            <line x1="24" y1="8" x2="24" y2="44" stroke="white" stroke-width="2" opacity="0.6"/>
+            <path d="M14 12 L24 8 L34 12" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <!-- USA flag small -->
+        <div class="char float-c" style="top:-10px; left:25%;">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="16" fill="#fff"/>
+            <path d="M2 18 Q18 8 34 18 Q18 28 2 18Z" fill="#ff2b3a"/>
+            <text x="18" y="23" text-anchor="middle" font-size="14">🇺🇸</text>
+          </svg>
+        </div>
+
+      </div>
+
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Personal Shopper en EE.UU. · Envío a toda Latinoamérica
+      </div>
+
+      <h1 class="hero-title">
+        Tu acceso directo a<br/>
+        productos de <span>EE.UU.</span>
+      </h1>
+
+      <p class="hero-sub">
+        Pídenos cualquier producto de Amazon, Nike, Apple Store, Costco o cualquier tienda en USA. Nosotros compramos, empacamos y te lo enviamos a tu puerta.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://wa.me/1XXXXXXXXXX" class="btn-dark-lg" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.52 5.837L0 24l6.335-1.502A11.947 11.947 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.894 0-3.662-.523-5.168-1.428l-.37-.22-3.762.892.944-3.664-.242-.378A9.96 9.96 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z" fill="white" opacity="0.8"/></svg>
+          Hacer mi pedido
+        </a>
+        <a href="#como-funciona" class="btn-link-orange">
+          Ver cómo funciona
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7H11M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Trust strip -->
+  <div class="trust-strip" style="margin-top:80px;">
+    <div class="container">
+      <div class="trust-inner">
+        <div class="trust-item">
+          <span class="trust-icon">✅</span>
+          +500 pedidos entregados
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">🚀</span>
+          Envío en 5–12 días
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">🔒</span>
+          Pago 100% seguro
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">📦</span>
+          Empaque protegido
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">🌎</span>
+          MX · CO · PE · AR · VE y más
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">💬</span>
+          Soporte por WhatsApp 24/7
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="section" id="como-funciona">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">El proceso</div>
+      <h2 class="section-title">Así de fácil funciona</h2>
+      <p class="section-sub">Cuatro pasos simples. Tú pides, nosotros hacemos todo el trabajo.</p>
+    </div>
+
+    <div class="steps-grid reveal">
+      <div class="step-card">
+        <span class="step-num">01</span>
+        <div class="step-icon-wrap" style="background:rgba(255,62,0,0.12);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M5 13h16M13 5l8 8-8 8" stroke="#ff3e00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="step-title">Envíanos el link o describe el producto</div>
+        <p class="step-desc">Mándanos por WhatsApp el link de Amazon, Nike, Apple o cualquier tienda. También puedes describirlo si no tienes el link.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">02</span>
+        <div class="step-icon-wrap" style="background:rgba(0,144,255,0.12);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="4" y="4" width="18" height="18" rx="4" stroke="#0090ff" stroke-width="2"/><path d="M9 13l3 3 5-5" stroke="#0090ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="step-title">Te cotizamos al instante</div>
+        <p class="step-desc">En minutos recibes el costo total: producto + comisión de servicio + flete internacional. Sin sorpresas ocultas.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">03</span>
+        <div class="step-icon-wrap" style="background:rgba(0,202,72,0.12);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="9" stroke="#00ca48" stroke-width="2"/><path d="M9 13l3 3 5-5" stroke="#00ca48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="step-title">Apruebas y pagás</div>
+        <p class="step-desc">Confirmás el pedido y realizás el pago por transferencia, Zelle, PayPal o tarjeta. Compramos inmediatamente.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-num">04</span>
+        <div class="step-icon-wrap" style="background:rgba(255,187,38,0.12);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M4 13l3-6h12l3 6v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5z" stroke="#d48f00" stroke-width="2" fill="none"/><path d="M4 13h18" stroke="#d48f00" stroke-width="2"/><path d="M10 18v-5M16 18v-5" stroke="#d48f00" stroke-width="1.5"/></svg>
+        </div>
+        <div class="step-title">Lo recibís en tu puerta</div>
+        <p class="step-desc">Seguís tu paquete en tiempo real. En 5 a 12 días hábiles llega a tu domicilio, con seguro de envío incluido.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CATEGORIES ─── -->
+<section class="categories-section" id="categorias">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">Catálogo</div>
+      <h2 class="section-title">Compramos de todo</h2>
+      <p class="section-sub">Si está en EE.UU., nosotros lo conseguimos. Desde electrónicos de última generación hasta ropa de temporada.</p>
+    </div>
+
+    <div class="categories-grid">
+
+      <div class="cat-card reveal">
+        <div class="cat-icon-wrap" style="background:rgba(0,144,255,0.1);">📱</div>
+        <div class="cat-title">Electrónicos & Tech</div>
+        <p class="cat-desc">Últimos modelos antes de llegar a tu país, a precios de USA.</p>
+        <div class="cat-examples">
+          <span class="cat-tag">iPhone</span>
+          <span class="cat-tag">MacBook</span>
+          <span class="cat-tag">PlayStation</span>
+          <span class="cat-tag">AirPods</span>
+          <span class="cat-tag">Laptops</span>
+        </div>
+      </div>
+
+      <div class="cat-card reveal">
+        <div class="cat-icon-wrap" style="background:rgba(255,58,174,0.1);">👟</div>
+        <div class="cat-title">Moda & Zapatillas</div>
+        <p class="cat-desc">Sneakers exclusivos, ropa de temporada y accesorios directos de la fuente.</p>
+        <div class="cat-examples">
+          <span class="cat-tag">Nike</span>
+          <span class="cat-tag">Jordan</span>
+          <span class="cat-tag">Levi's</span>
+          <span class="cat-tag">Coach</span>
+          <span class="cat-tag">Adidas</span>
+        </div>
+      </div>
+
+      <div class="cat-card reveal">
+        <div class="cat-icon-wrap" style="background:rgba(255,62,0,0.1);">💊</div>
+        <div class="cat-title">Suplementos & Salud</div>
+        <p class="cat-desc">Vitaminas, proteínas y productos de bienestar certificados de EE.UU.</p>
+        <div class="cat-examples">
+          <span class="cat-tag">Whey Protein</span>
+          <span class="cat-tag">Vitaminas</span>
+          <span class="cat-tag">Colágeno</span>
+          <span class="cat-tag">Pre-workout</span>
+        </div>
+      </div>
+
+      <div class="cat-card reveal">
+        <div class="cat-icon-wrap" style="background:rgba(255,187,38,0.1);">💄</div>
+        <div class="cat-title">Belleza & Skincare</div>
+        <p class="cat-desc">Cosméticos originales de Sephora, Ulta y drugstores americanos.</p>
+        <div class="cat-examples">
+          <span class="cat-tag">Charlotte Tilbury</span>
+          <span class="cat-tag">The Ordinary</span>
+          <span class="cat-tag">Fenty</span>
+          <span class="cat-tag">Drunk Elephant</span>
+        </div>
+      </div>
+
+      <div class="cat-card reveal">
+        <div class="cat-icon-wrap" style="background:rgba(0,202,72,0.1);">🏠</div>
+        <div class="cat-title">Hogar & Cocina</div>
+        <p class="cat-desc">Electrodomésticos, gadgets de cocina y artículos del hogar que no consigues localmente.</p>
+        <div class="cat-examples">
+          <span class="cat-tag">Instant Pot</span>
+          <span class="cat-tag">Dyson</span>
+          <span class="cat-tag">KitchenAid</span>
+          <span class="cat-tag">Ring</span>
+        </div>
+      </div>
+
+      <div class="cat-card reveal">
+        <div class="cat-icon-wrap" style="background:rgba(159,79,255,0.1);">🧸</div>
+        <div class="cat-title">Juguetes & Bebé</div>
+        <p class="cat-desc">Juguetes educativos, ropa de bebé y artículos de maternidad de marcas confiables.</p>
+        <div class="cat-examples">
+          <span class="cat-tag">LEGO</span>
+          <span class="cat-tag">Fisher-Price</span>
+          <span class="cat-tag">Carter's</span>
+          <span class="cat-tag">Skip Hop</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── WHY US ─── -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">Por qué elegirnos</div>
+      <h2 class="section-title">Todo resuelto, sin complicaciones</h2>
+      <p class="section-sub">Somos tu equipo en EE.UU. Manejamos compras, logística, aduanas y entrega como expertos.</p>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feature-card featured reveal">
+        <div class="feat-icon" style="background:rgba(255,62,0,0.15); font-size:22px;">🛡️</div>
+        <div class="feat-title">Compra protegida con seguro de envío</div>
+        <p class="feat-desc">Cada paquete viaja asegurado. Si algo se pierde o daña en tránsito, te reponemos el producto o te devolvemos el dinero. Sin discusiones.</p>
+        <div class="feat-big-number">100%</div>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feat-icon" style="background:rgba(0,202,72,0.1);">📍</div>
+        <div class="feat-title">Tracking en tiempo real</div>
+        <p class="feat-desc">Seguís cada etapa de tu paquete: desde la compra en USA hasta el timbre de tu puerta. Actualizaciones por WhatsApp.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feat-icon" style="background:rgba(0,144,255,0.1);">⚡</div>
+        <div class="feat-title">Respuesta en menos de 1 hora</div>
+        <p class="feat-desc">Cotizamos y confirmamos tu pedido en tiempo récord. Sin esperas, sin burocracia.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feat-icon" style="background:rgba(255,187,38,0.1);">💳</div>
+        <div class="feat-title">Múltiples métodos de pago</div>
+        <p class="feat-desc">Transferencia bancaria, Zelle, PayPal, tarjeta de crédito o criptomonedas. Elegís el más cómodo para vos.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feat-icon" style="background:rgba(255,62,0,0.1);">🏷️</div>
+        <div class="feat-title">Precio justo y transparente</div>
+        <p class="feat-desc">Sin cargos ocultos. Nuestro precio incluye el producto + comisión + flete. Lo que cotizamos es lo que pagás.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ─── -->
+<section class="pricing-section" id="precios">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <div class="section-label">Planes</div>
+      <h2 class="section-title">Precios simples y transparentes</h2>
+      <p class="section-sub">Nuestro cargo de servicio va según el tamaño de tu compra. Cuanto más comprás, más ahorrás.</p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <div class="price-card reveal">
+        <div>
+          <div class="price-tier">Básico</div>
+          <div class="price-amount" style="margin-top:12px;">
+            <span class="price-currency">$</span>
+            <span class="price-num">15</span>
+          </div>
+          <div class="price-note">+ flete internacional</div>
+        </div>
+        <p class="price-desc">Para compras de hasta $100 USD. Ideal para artículos pequeños y medianos.</p>
+        <ul class="price-features">
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Compra en cualquier tienda USA
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Tracking completo
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Soporte por WhatsApp
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Seguro básico de envío
+          </li>
+        </ul>
+        <a href="https://wa.me/1XXXXXXXXXX" class="price-cta" target="_blank">Pedir ahora →</a>
+      </div>
+
+      <div class="price-card popular reveal">
+        <div class="popular-badge">⭐ Más popular</div>
+        <div>
+          <div class="price-tier">Estándar</div>
+          <div class="price-amount" style="margin-top:12px;">
+            <span class="price-currency" style="color:rgba(255,255,255,0.7);">$</span>
+            <span class="price-num">8</span>
+            <span style="font-size:15px;color:rgba(255,255,255,0.5);margin-left:2px;">% del total</span>
+          </div>
+          <div class="price-note">Mínimo $15 · compras $101–$500</div>
+        </div>
+        <p class="price-desc">Para la mayoría de compras. El favorito de nuestros clientes frecuentes.</p>
+        <ul class="price-features">
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Todo del plan Básico
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Consolidación de paquetes
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Fotos del unboxing en USA
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Seguro full coverage
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Verificación de autenticidad
+          </li>
+        </ul>
+        <a href="https://wa.me/1XXXXXXXXXX" class="price-cta" target="_blank">Pedir ahora →</a>
+      </div>
+
+      <div class="price-card reveal">
+        <div>
+          <div class="price-tier">Premium</div>
+          <div class="price-amount" style="margin-top:12px;">
+            <span class="price-currency">$</span>
+            <span class="price-num">5</span>
+            <span style="font-size:15px;color:var(--color-ash);margin-left:2px;">% del total</span>
+          </div>
+          <div class="price-note">Para compras mayores a $500</div>
+        </div>
+        <p class="price-desc">Para importadores frecuentes y pedidos de alto valor. Servicio personalizado.</p>
+        <ul class="price-features">
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Todo del plan Estándar
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Gestor de cuenta exclusivo
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Asesoría aduanera incluida
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Envío express disponible
+          </li>
+          <li class="price-feat-item">
+            <span class="price-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            Descuentos por volumen
+          </li>
+        </ul>
+        <a href="https://wa.me/1XXXXXXXXXX" class="price-cta" target="_blank">Hablar con un asesor →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── CALCULATOR ─── -->
+<section class="calc-section">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <div class="section-label">Calculadora</div>
+      <h2 class="section-title">Estimá tu costo total</h2>
+      <p class="section-sub">Obtené un estimado instantáneo antes de hacer tu pedido.</p>
+    </div>
+
+    <div class="calc-card reveal">
+      <div class="calc-title">Calculadora de envío</div>
+      <p class="calc-sub">Los valores son estimados. Te enviamos una cotización exacta por WhatsApp.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Precio del producto (USD)</label>
+          <input type="number" class="form-input" id="calcPrice" placeholder="ej. 150" min="0" oninput="calcEstimate()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peso estimado (kg)</label>
+          <input type="number" class="form-input" id="calcWeight" placeholder="ej. 0.5" min="0" step="0.1" oninput="calcEstimate()"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">País de destino</label>
+          <select class="form-select" id="calcCountry" onchange="calcEstimate()">
+            <option value="15">México</option>
+            <option value="18">Colombia</option>
+            <option value="20">Perú</option>
+            <option value="22">Argentina</option>
+            <option value="16">Chile</option>
+            <option value="25">Venezuela</option>
+            <option value="20">Ecuador</option>
+            <option value="18">Guatemala</option>
+            <option value="25">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select class="form-select" id="calcCat" onchange="calcEstimate()">
+            <option>Electrónicos</option>
+            <option>Ropa y zapatos</option>
+            <option>Suplementos</option>
+            <option>Belleza</option>
+            <option>Hogar</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="calc-result" id="calcResult" style="display:none;">
+        <div>
+          <div class="calc-result-label">Estimado total</div>
+          <div style="font-size:13px;color:var(--color-ash);margin-top:2px;">producto + servicio + flete</div>
+        </div>
+        <div class="calc-result-amount" id="calcResultAmount">$0</div>
+      </div>
+      <div id="calcPlaceholder" style="margin-top:24px;padding:20px 24px;background:var(--color-parchment-card);border-radius:var(--radius-cards);text-align:center;color:var(--color-ash);font-size:14px;">
+        Ingresá el precio del producto para calcular
+      </div>
+
+      <a href="https://wa.me/1XXXXXXXXXX" class="btn-dark-lg" style="width:100%;justify-content:center;margin-top:20px;" target="_blank">
+        Obtener cotización exacta por WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIALS ─── -->
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <div class="section-label">Clientes felices</div>
+      <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+      <p class="section-sub">Más de 500 personas ya recibieron sus productos de USA con nosotros.</p>
+    </div>
+
+    <div class="testimonials-row">
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          ⭐⭐⭐⭐⭐
+        </div>
+        <p class="testi-quote">"Pedí unos Jordan 1 que no había en mi país. Me cotizaron en 20 minutos y en 8 días los tenía en casa. Todo autenticado y con caja original. 100% recomiendo InstaShoper."</p>
+        <div class="testi-user">
+          <div class="testi-avatar" style="background:rgba(255,62,0,0.1);">🧑</div>
+          <div>
+            <div class="testi-name">Sebastián R.</div>
+            <div class="testi-handle">Medellín, Colombia</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          ⭐⭐⭐⭐⭐
+        </div>
+        <p class="testi-quote">"Ya van 3 pedidos con InstaShoper y siempre perfectos. El iPhone 15 Pro me salió $400 más barato que aquí en México, incluyendo todo. El servicio de WhatsApp es rapidísimo."</p>
+        <div class="testi-user">
+          <div class="testi-avatar" style="background:rgba(0,202,72,0.1);">👩</div>
+          <div>
+            <div class="testi-name">Mariana T.</div>
+            <div class="testi-handle">Ciudad de México, MX</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          ⭐⭐⭐⭐⭐
+        </div>
+        <p class="testi-quote">"Me ayudaron a comprar suplementos de GNC que acá en Lima no consigo. Me mandaron fotos antes de enviar y llegó súper bien empaquetado. Volveré a usarlos sin dudarlo."</p>
+        <div class="testi-user">
+          <div class="testi-avatar" style="background:rgba(0,144,255,0.1);">🧔</div>
+          <div>
+            <div class="testi-name">Carlos M.</div>
+            <div class="testi-handle">Lima, Perú</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          ⭐⭐⭐⭐⭐
+        </div>
+        <p class="testi-quote">"Compré cosméticos de Sephora USA que cuestan el triple acá. Me hicieron el pedido ese mismo día, me enviaron foto del unboxing y llegó perfecto. Ya lo recomendé a toda mi familia."</p>
+        <div class="testi-user">
+          <div class="testi-avatar" style="background:rgba(255,58,174,0.1);">👩‍🦱</div>
+          <div>
+            <div class="testi-name">Valentina C.</div>
+            <div class="testi-handle">Buenos Aires, AR</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          ⭐⭐⭐⭐⭐
+        </div>
+        <p class="testi-quote">"El proceso fue súper transparente. Me dieron precio exacto antes de pagar, tracking en tiempo real y llegó antes de lo estimado. Un servicio profesional de verdad."</p>
+        <div class="testi-user">
+          <div class="testi-avatar" style="background:rgba(255,187,38,0.1);">👨‍💼</div>
+          <div>
+            <div class="testi-name">Andrés P.</div>
+            <div class="testi-handle">Santiago, Chile</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          ⭐⭐⭐⭐⭐
+        </div>
+        <p class="testi-quote">"Necesitaba un regalo especial de Amazon para mi hija y me lo gestionaron completo. Hasta eligieron el empaque bonito antes de enviar. Un detalle que me encantó. ¡Gracias InstaShoper!"</p>
+        <div class="testi-user">
+          <div class="testi-avatar" style="background:rgba(0,202,72,0.1);">👩‍👧</div>
+          <div>
+            <div class="testi-name">Patricia G.</div>
+            <div class="testi-handle">Caracas, Venezuela</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── FAQ ─── -->
+<section class="faq-section" id="faq">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <div class="section-label">Preguntas frecuentes</div>
+      <h2 class="section-title">Todo lo que necesitás saber</h2>
+    </div>
+
+    <div class="faq-grid">
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿Qué tiendas de USA puedo usar?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">Cualquier tienda que opere en EE.UU.: Amazon, Walmart, Target, Best Buy, Nike, Adidas, Sephora, Apple Store, Costco, eBay, Etsy, y muchas más. Si tiene envío a dirección en USA, nosotros lo compramos.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿Cuánto tarda el envío?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">El tiempo estándar es de 5 a 12 días hábiles desde que confirmamos tu pedido. Varía según el país de destino y el servicio de courier. Ofrecemos también envío express de 3–5 días para el plan Premium.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿Puedo consolidar varios productos en un solo envío?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">Sí, desde el plan Estándar consolidamos múltiples compras en un solo paquete, lo que reduce significativamente el costo de flete. Podés comprar en diferentes tiendas y te llega todo junto.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿Cómo pago el servicio?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">Aceptamos Zelle, PayPal, transferencia bancaria (SWIFT/SEPA), tarjeta de crédito/débito y criptomonedas (USDT, Bitcoin). El pago se realiza antes de la compra y cubre el 100% del servicio.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿Qué pasa si el producto llega dañado?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">Todos los envíos llevan seguro. Si el producto llega dañado, abrís un caso con nosotros por WhatsApp, enviás fotos, y gestionamos la reclamación con el courier. Te reponemos o devolvemos el dinero.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿Hay productos que no puedan enviarse?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">Algunos artículos tienen restricciones internacionales: baterías de litio grandes (ej. hoverboards), líquidos en exceso de ciertas cantidades, artículos restringidos por aduana de tu país. Consultanos antes de pedir y te asesoramos.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿El precio incluye impuestos aduaneros?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">El flete internacional no incluye impuestos aduaneros locales (si aplican en tu país). Te informamos qué declarar y cómo minimizar cargos legalmente. En muchos casos los envíos personales tienen exenciones.</div>
+      </div>
+
+      <div class="faq-item reveal" onclick="toggleFaq(this)">
+        <div class="faq-q">
+          ¿A qué países envían?
+          <span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="faq-a">Enviamos a México, Colombia, Perú, Argentina, Chile, Venezuela, Ecuador, Guatemala, República Dominicana, Honduras, Costa Rica, Uruguay y más países de Latinoamérica. Consultanos si tu país no está en la lista.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── FINAL CTA ─── -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-card reveal">
+      <div class="cta-card-bg"></div>
+      <div class="cta-label">Empieza hoy</div>
+      <h2 class="cta-title">Tu producto favorito de USA, en tu puerta</h2>
+      <p class="cta-sub">Escribinos por WhatsApp ahora mismo. En menos de 1 hora tenés tu cotización lista.</p>
+      <div class="cta-actions">
+        <a href="https://wa.me/1XXXXXXXXXX" class="btn-white" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#121212"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.52 5.837L0 24l6.335-1.502A11.947 11.947 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.894 0-3.662-.523-5.168-1.428l-.37-.22-3.762.892.944-3.664-.242-.378A9.96 9.96 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z" fill="#121212" opacity="0.6"/></svg>
+          Escribir por WhatsApp
+        </a>
+        <a href="#como-funciona" style="color:rgba(255,255,255,0.6);font-size:15px;font-weight:500;text-decoration:none;letter-spacing:-0.2px;padding:14px 4px;transition:color 0.2s ease;" onmouseover="this.style.color='rgba(255,255,255,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
+          Conocer más →
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" style="text-decoration:none;">
+          <div class="nav-logo-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" fill="white" opacity="0.9"/>
+              <circle cx="9" cy="9" r="2.5" fill="#ff3e00"/>
+            </svg>
+          </div>
+          InstaShoper
+        </a>
+        <p>Tu personal shopper en EE.UU. Compramos, empacamos y enviamos cualquier producto a toda Latinoamérica.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Servicio</div>
+        <ul class="footer-links">
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+          <li><a href="#categorias">Qué compramos</a></li>
+          <li><a href="#precios">Precios</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Contacto</div>
+        <ul class="footer-links">
+          <li><a href="https://wa.me/1XXXXXXXXXX" target="_blank">WhatsApp</a></li>
+          <li><a href="mailto:hola@instashopper.com">Email</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">TikTok</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Empresa</div>
+        <ul class="footer-links">
+          <li><a href="#">Sobre nosotros</a></li>
+          <li><a href="#">Trabaja con nosotros</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Afiliados</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2024 InstaShoper. Todos los derechos reservados.</span>
+      <div class="footer-legal">
+        <a href="#">Términos de servicio</a>
+        <a href="#">Privacidad</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── WHATSAPP FAB ─── -->
+<a href="https://wa.me/1XXXXXXXXXX" class="whatsapp-fab" target="_blank" aria-label="Contactar por WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.11 1.52 5.837L0 24l6.335-1.502A11.947 11.947 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.894 0-3.662-.523-5.168-1.428l-.37-.22-3.762.892.944-3.664-.242-.378A9.96 9.96 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/>
+  </svg>
+</a>
+
+<!-- ─── SCRIPTS ─── -->
+<script>
+  // Mobile nav toggle
+  function closeMobileNav() {
+    document.getElementById('mobileNav').classList.remove('open');
+  }
+  document.getElementById('burgerBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, 60);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => observer.observe(el));
+
+  // FAQ toggle
+  function toggleFaq(el) {
+    const wasOpen = el.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(item => item.classList.remove('open'));
+    if (!wasOpen) el.classList.add('open');
+  }
+
+  // Shipping calculator
+  function calcEstimate() {
+    const price    = parseFloat(document.getElementById('calcPrice').value) || 0;
+    const weight   = parseFloat(document.getElementById('calcWeight').value) || 0;
+    const rateKg   = parseFloat(document.getElementById('calcCountry').value) || 15;
+
+    if (price <= 0) {
+      document.getElementById('calcResult').style.display = 'none';
+      document.getElementById('calcPlaceholder').style.display = 'block';
+      return;
+    }
+
+    // Service fee
+    let serviceFee;
+    if (price <= 100)      serviceFee = 15;
+    else if (price <= 500) serviceFee = Math.max(15, price * 0.08);
+    else                   serviceFee = price * 0.05;
+
+    // Shipping estimate (min $12)
+    const shipping = Math.max(12, weight * rateKg);
+    const total    = price + serviceFee + shipping;
+
+    document.getElementById('calcResult').style.display = 'flex';
+    document.getElementById('calcPlaceholder').style.display = 'none';
+    document.getElementById('calcResultAmount').textContent = '$' + total.toFixed(0) + ' USD';
+  }
+
+  // Smooth nav close on link click
+  document.querySelectorAll('.mobile-nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.getElementById('mobileNav').classList.remove('open');
+    });
+  });
+</script>
+
+</body>
+</html>
