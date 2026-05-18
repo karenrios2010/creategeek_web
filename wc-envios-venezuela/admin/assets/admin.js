@@ -1,68 +1,41 @@
-/* WC Envíos Venezuela – Admin JS */
+/* WC Envíos Venezuela – Admin */
 ( function ( $ ) {
     'use strict';
 
-    /* ── Datepicker en campos de fecha ────────────────────────────────────── */
+    /* ── Datepicker ───────────────────────────────────────────────────────── */
     $( document ).on( 'focus', '.wcev-datepicker', function () {
-        $( this ).datepicker( {
-            dateFormat:      'yy-mm-dd',
-            changeMonth:     true,
-            changeYear:      true,
-            showButtonPanel: true,
-        } );
+        if ( $( this ).hasClass( 'hasDatepicker' ) ) return;
+        $( this ).datepicker( { dateFormat: 'yy-mm-dd', changeMonth: true, changeYear: true } );
+        $( this ).datepicker( 'show' );
     } );
 
     /* ── Media uploader para logos ────────────────────────────────────────── */
-    var mediaFrame;
-
     $( document ).on( 'click', '.wcev-upload-logo', function ( e ) {
         e.preventDefault();
-        var $btn    = $( this );
-        var target  = $btn.data( 'target' );
-        var $input  = $( '#' + target );
-        var $field  = $btn.closest( '.wcev-logo-field' );
-        var $preview = $field.find( '.wcev-logo-preview' );
-        var $remove  = $field.find( '.wcev-remove-logo' );
+        var $btn     = $( this );
+        var targetId = $btn.data( 'target' );
+        var $wrap    = $btn.closest( '.wcev-logo-field' );
 
-        if ( mediaFrame ) {
-            mediaFrame.open();
-            return;
-        }
-
-        mediaFrame = wp.media( {
+        wp.media( {
             title:    'Seleccionar logo del carrier',
             button:   { text: 'Usar esta imagen' },
             library:  { type: [ 'image' ] },
             multiple: false,
-        } );
-
-        mediaFrame.on( 'select', function () {
-            var attachment = mediaFrame.state().get( 'selection' ).first().toJSON();
-            var url = attachment.url;
-
-            $input.val( url );
-            $preview.attr( 'src', url ).show();
-            $remove.show();
-        } );
-
-        mediaFrame.open();
-
-        // Resetear frame para que funcione con distintos botones
-        mediaFrame.on( 'close', function () {
-            mediaFrame = null;
-        } );
+        } ).on( 'select', function () {
+            var att = this.state().get( 'selection' ).first().toJSON();
+            $( '#' + targetId ).val( att.url );
+            $wrap.find( '.wcev-logo-preview' ).attr( 'src', att.url ).show();
+            $wrap.find( '.wcev-remove-logo' ).show();
+        } ).open();
     } );
 
     /* ── Eliminar logo ────────────────────────────────────────────────────── */
     $( document ).on( 'click', '.wcev-remove-logo', function ( e ) {
         e.preventDefault();
-        var $btn    = $( this );
-        var target  = $btn.data( 'target' );
-        var $field  = $btn.closest( '.wcev-logo-field' );
-
-        $( '#' + target ).val( '' );
-        $field.find( '.wcev-logo-preview' ).attr( 'src', '' ).hide();
-        $btn.hide();
+        var $wrap = $( this ).closest( '.wcev-logo-field' );
+        $( '#' + $( this ).data( 'target' ) ).val( '' );
+        $wrap.find( '.wcev-logo-preview' ).hide().attr( 'src', '' );
+        $( this ).hide();
     } );
 
 } )( jQuery );
