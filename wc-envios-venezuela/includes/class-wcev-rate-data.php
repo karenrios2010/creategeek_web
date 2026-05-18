@@ -2,33 +2,47 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Recopila datos de todas las instancias de métodos WCEV en zonas de envío.
- * Resultado indexado por "method_id:instance_id" para que el JS haga el match.
+ * Lee los datos de cada instancia WCEV directamente de wp_options,
+ * sin depender de que las clases de envío estén completamente inicializadas.
+ * Indexado por "method_id:instance_id" para que el JS haga el match.
  */
 function wcev_collect_rate_data() {
+    global $wpdb;
+
     $data = [];
 
-    try {
-        $all_zones   = WC_Shipping_Zones::get_zones();
-        $all_zones[] = [ 'zone_id' => 0 ]; // Zona "Resto del mundo"
+    // Leer todas las instancias wcev_ registradas en zonas de envío
+    $rows = $wpdb->get_results(
+        "SELECT method_id, instance_id
+         FROM {$wpdb->prefix}woocommerce_shipping_zone_methods
+         WHERE method_id LIKE 'wcev_%'",
+        ARRAY_A
+    );
 
-        foreach ( $all_zones as $zone_data ) {
-            $zone = new WC_Shipping_Zone( $zone_data['zone_id'] );
+    if ( empty( $rows ) ) {
+        return $data;
+    }
 
-            foreach ( $zone->get_shipping_methods( false ) as $method ) {
-                if ( strpos( $method->id, 'wcev_' ) !== 0 ) {
-                    continue;
-                }
-                $key        = $method->id . ':' . $method->instance_id;
-                $data[ $key ] = [
-                    'logo'                => esc_url_raw( $method->get_option( 'logo', '' ) ),
-                    'cobro_destino'       => $method->get_option( 'cobro_destino', 'no' ),
-                    'cobro_destino_label' => $method->get_option( 'cobro_destino_label', 'Cobro a destino' ),
-                ];
-            }
+    foreach ( $rows as $row ) {
+        $method_id   = $row['method_id'];
+        $instance_id = (int) $row['instance_id'];
+        $rate_key    = $method_id . ':' . $instance_id;
+
+        // La clave de opción WooCommerce para instance settings
+        $option_key = 'woocommerce_' . $method_id . '_' . $instance_id . '_settings';
+        $settings   = get_option( $option_key, [] );
+
+        if ( ! is_array( $settings ) ) {
+            $settings = [];
         }
-    } catch ( Exception $e ) {
-        // Silenciar errores de inicialización temprana
+
+        $data[ $rate_key ] = [
+            'logo'                => isset( $settings['logo'] ) ? esc_url_raw( $settings['logo'] ) : '',
+            'cobro_destino'       => isset( $settings['cobro_destino'] ) ? $settings['cobro_destino'] : 'no',
+            'cobro_destino_label' => ! empty( $settings['cobro_destino_label'] )
+                                        ? $settings['cobro_destino_label']
+                                        : 'Cobro a destino',
+        ];
     }
 
     return $data;

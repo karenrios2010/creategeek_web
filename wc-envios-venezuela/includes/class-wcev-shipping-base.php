@@ -136,14 +136,15 @@ abstract class WCEV_Shipping_Base extends WC_Shipping_Method {
 
     /* ── Logo en checkout clásico ─────────────────────────────────────────── */
     public static function inject_logo_classic( $label, $method ) {
+        // method_id:instance_id — ej: wcev_mrw:3
+        $rate_id   = $method->get_id();
         $rate_data = wcev_collect_rate_data();
-        $rate_id   = $method->get_id(); // "wcev_mrw:1"
 
         if ( empty( $rate_data[ $rate_id ]['logo'] ) ) {
             return $label;
         }
 
-        $img = '<img src="' . esc_url( $rate_data[ $rate_id ]['logo'] ) . '" alt="" class="wcev-method-logo">';
+        $img = '<img src="' . esc_url( $rate_data[ $rate_id ]['logo'] ) . '" alt="" class="wcev-method-logo" loading="lazy">';
         return $img . '<span class="wcev-method-label">' . wp_kses_post( $label ) . '</span>';
     }
 }
