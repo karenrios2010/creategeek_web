@@ -44,6 +44,7 @@ function wcev_init() {
     require_once WCEV_DIR . 'includes/class-wcev-mrw.php';
     require_once WCEV_DIR . 'includes/class-wcev-zoom.php';
     require_once WCEV_DIR . 'includes/class-wcev-tealca.php';
+    require_once WCEV_DIR . 'includes/class-wcev-custom.php';
     require_once WCEV_DIR . 'includes/class-wcev-popup.php';
     require_once WCEV_DIR . 'includes/class-wcev-blocks-integration.php';
 
@@ -68,6 +69,7 @@ function wcev_register_methods( $methods ) {
     $methods['wcev_mrw']    = 'WCEV_MRW';
     $methods['wcev_zoom']   = 'WCEV_Zoom';
     $methods['wcev_tealca'] = 'WCEV_Tealca';
+    $methods['wcev_custom'] = 'WCEV_Custom';
     return $methods;
 }
 
@@ -90,7 +92,7 @@ function wcev_frontend_assets() {
         'nonce'   => wp_create_nonce( 'wcev_popup' ),
     ] );
 
-    // Datos para checkout de bloques (Gutenberg): logos por instancia
+    // Datos para checkout de bloques (Gutenberg)
     if ( class_exists( 'WCEV_Blocks_Integration' ) ) {
         wp_enqueue_script(
             'wcev-blocks-frontend',
@@ -100,7 +102,7 @@ function wcev_frontend_assets() {
             true
         );
         wp_localize_script( 'wcev-blocks-frontend', 'wcevShippingData', [
-            'logos' => WCEV_Blocks_Integration::collect_logos(),
+            'rates' => WCEV_Blocks_Integration::collect_rate_data(),
         ] );
     }
 }

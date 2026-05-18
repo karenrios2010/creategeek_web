@@ -1,77 +1,98 @@
 /**
- * WC Envíos Venezuela – Integración con WooCommerce Blocks (checkout Gutenberg).
+ * WC Envíos Venezuela – integración con WooCommerce Blocks checkout.
  *
- * WooCommerce blocks checkout renderiza los métodos de envío como radio-inputs
- * dentro de .wc-block-components-radio-control__option.
- * Este script usa MutationObserver para inyectar el logo del carrier
- * junto a cada etiqueta de método una vez que los bloques renderizan.
+ * Problemas que resuelve:
+ *  1. Inyecta el logo del carrier junto a la etiqueta del método de envío.
+ *  2. Reemplaza el texto "Gratis / Free" por el label de cobro a destino
+ *     cuando el método tiene cobro_destino habilitado y costo = 0.
  *
- * Los datos de logos (método_id:instance_id → URL) los entrega PHP
- * a través de WCEV_Blocks_Integration::get_script_data().
+ * El bloque de checkout Gutenberg re-renderiza en React, por eso usamos
+ * MutationObserver en lugar de un evento único DOMContentLoaded.
  */
 ( function () {
     'use strict';
 
-    /* Los datos llegan desde PHP via IntegrationInterface::get_script_data() */
-    var pluginData = window.wcevShippingData || window.wc_wcev_shipping_data || {};
-    var logos      = pluginData.logos || {};
+    /* PHP inyecta: wcevShippingData.rates = { "wcev_mrw:1": { logo, cobro_destino, cobro_destino_label }, ... } */
+    var pluginData = window.wcevShippingData || {};
+    var rates      = pluginData.rates || {};
 
-    if ( ! Object.keys( logos ).length ) return;
+    if ( ! Object.keys( rates ).length ) return;
 
-    /* ── Inyectar logo en un elemento de opción de envío ───────────────── */
-    function injectLogo( optionEl ) {
-        /* El input radio tiene value = "method_id:instance_id" */
-        var input = optionEl.querySelector( 'input[type="radio"]' );
+    /* Textos que WooCommerce muestra cuando el precio es 0 */
+    var FREE_TEXTS = [ 'gratis', 'free', 'free!', 'gratuito', '$0.00', '0,00 $', 'bs0.00', 'bs. 0.00', '0.00' ];
+
+    function isFreeText( txt ) {
+        return FREE_TEXTS.indexOf( txt.toLowerCase().trim() ) !== -1;
+    }
+
+    /* ── Procesar un elemento de opción de envío ─────────────────────────── */
+    function processOption( el ) {
+        /* WC Blocks renderiza el rate-id en el atributo value del input radio.
+           Selector robusto que cubre varias versiones de WC Blocks. */
+        var input = el.querySelector( 'input[type="radio"]' );
         if ( ! input ) return;
 
-        var rateId = input.value; // ej: "wcev_mrw:1"
-        var logo   = logos[ rateId ];
-        if ( ! logo ) return;
+        var rateId   = input.value;                    // "wcev_mrw:1"
+        var rateData = rates[ rateId ];
+        if ( ! rateData ) return;
 
-        /* Evitar inyección duplicada */
-        if ( optionEl.querySelector( '.wcev-block-logo' ) ) return;
-
-        var labelEl = optionEl.querySelector( 'label, .wc-block-components-radio-control__label-group' );
-        if ( ! labelEl ) return;
-
-        var img = document.createElement( 'img' );
-        img.src       = logo;
-        img.alt       = '';
-        img.className = 'wcev-block-logo';
-        img.setAttribute( 'aria-hidden', 'true' );
-
-        labelEl.insertBefore( img, labelEl.firstChild );
-    }
-
-    /* ── Escanear todos los options de envío visibles ───────────────────── */
-    function scanShippingOptions() {
-        var options = document.querySelectorAll(
-            '.wc-block-components-radio-control__option, ' +
-            '.wc-block-components-shipping-rates-control__package .wc-block-components-radio-control__option'
-        );
-        options.forEach( injectLogo );
-    }
-
-    /* ── MutationObserver: reaccionar cuando blocks re-renderizan ──────── */
-    function observe() {
-        var target = document.body;
-        var observer = new MutationObserver( function ( mutations ) {
-            var relevant = mutations.some( function ( m ) {
-                return m.addedNodes.length > 0;
-            } );
-            if ( relevant ) {
-                scanShippingOptions();
+        /* ── Inyectar logo ───────────────────────────────────────────────── */
+        if ( rateData.logo && ! el.querySelector( '.wcev-block-logo' ) ) {
+            /* El label puede estar en distintos nodos según la versión de WC Blocks */
+            var labelText = el.querySelector(
+                '.wc-block-components-radio-control__label, ' +
+                '.wc-block-components-radio-control__label-group, ' +
+                'label span:first-child, label'
+            );
+            if ( labelText ) {
+                var img       = document.createElement( 'img' );
+                img.src       = rateData.logo;
+                img.alt       = '';
+                img.className = 'wcev-block-logo';
+                img.setAttribute( 'aria-hidden', 'true' );
+                labelText.parentNode.insertBefore( img, labelText );
             }
-        } );
-        observer.observe( target, { childList: true, subtree: true } );
+        }
 
-        /* Primer escaneo al cargar */
-        scanShippingOptions();
+        /* ── Reemplazar "Gratis" en cobro a destino ──────────────────────── */
+        if ( rateData.cobro_destino === 'yes' ) {
+            /* WC Blocks muestra el precio en un span separado */
+            var priceEl = el.querySelector(
+                '.wc-block-components-radio-control__secondary-label, ' +
+                '.wc-block-components-shipping-rates-control__package-rate-price, ' +
+                '[class*="secondary-label"], [class*="price"]'
+            );
+            if ( priceEl && isFreeText( priceEl.textContent ) ) {
+                priceEl.textContent = rateData.cobro_destino_label || 'Cobro a destino';
+                priceEl.classList.add( 'wcev-cobro-destino-label' );
+            }
+        }
+    }
+
+    /* ── Escanear todos los options visibles en la página ────────────────── */
+    function scan() {
+        /* Selector amplio: cubre .wc-block-components-radio-control__option
+           y también posibles variaciones de clase */
+        var options = document.querySelectorAll( '[class*="radio-control__option"]' );
+        options.forEach( processOption );
+    }
+
+    /* ── MutationObserver: reacciona cuando React re-renderiza ───────────── */
+    var timer;
+    var observer = new MutationObserver( function () {
+        /* Debounce: agrupar múltiples mutaciones en una sola pasada */
+        clearTimeout( timer );
+        timer = setTimeout( scan, 80 );
+    } );
+
+    function start() {
+        observer.observe( document.body, { childList: true, subtree: true } );
+        scan(); /* Primer escaneo inmediato */
     }
 
     if ( document.readyState === 'loading' ) {
-        document.addEventListener( 'DOMContentLoaded', observe );
+        document.addEventListener( 'DOMContentLoaded', start );
     } else {
-        observe();
+        start();
     }
 } )();

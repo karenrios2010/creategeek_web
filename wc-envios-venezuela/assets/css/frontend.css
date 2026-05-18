@@ -249,6 +249,14 @@
     flex-wrap:   wrap;
 }
 
+/* Texto "Cobro a destino" que reemplaza "Gratis" en blocks checkout */
+.wcev-cobro-destino-label {
+    font-size:   .78rem;
+    font-weight: 600;
+    color:       #c0392b;
+    white-space: nowrap;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
     .wcev-popup-box {

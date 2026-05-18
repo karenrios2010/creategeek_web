@@ -3,11 +3,6 @@ defined( 'ABSPATH' ) || exit;
 
 use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
 
-/**
- * Integración con WooCommerce Blocks (Cart & Checkout Gutenberg).
- * Pasa los logos de cada instancia al frontend JS para inyectarlos
- * en los radio-buttons del checkout de bloques via MutationObserver.
- */
 class WCEV_Blocks_Integration implements IntegrationInterface {
 
     public function get_name(): string {
@@ -24,19 +19,19 @@ class WCEV_Blocks_Integration implements IntegrationInterface {
 
     public function get_script_data(): array {
         return [
-            'logos' => self::collect_logos(),
+            'rates' => self::collect_rate_data(),
         ];
     }
 
     /**
-     * Recorre todas las zonas de envío y recoge el logo de cada
-     * instancia de método WCEV, indexado por "method_id:instance_id".
+     * Devuelve logo + datos de cobro a destino por cada instancia WCEV,
+     * indexado por "method_id:instance_id" para que el JS pueda hacer el match.
      */
-    public static function collect_logos(): array {
-        $logos = [];
+    public static function collect_rate_data(): array {
+        $data = [];
 
         $all_zones   = WC_Shipping_Zones::get_zones();
-        $all_zones[] = [ 'zone_id' => 0 ]; // Zona "resto del mundo"
+        $all_zones[] = [ 'zone_id' => 0 ]; // Zona "Resto del mundo"
 
         foreach ( $all_zones as $zone_data ) {
             $zone = new WC_Shipping_Zone( $zone_data['zone_id'] );
@@ -44,14 +39,26 @@ class WCEV_Blocks_Integration implements IntegrationInterface {
                 if ( 0 !== strpos( $method->id, 'wcev_' ) ) {
                     continue;
                 }
-                $logo = $method->get_option( 'logo', '' );
-                if ( $logo ) {
-                    $key          = $method->id . ':' . $method->instance_id;
-                    $logos[ $key ] = esc_url( $logo );
-                }
+                $key          = $method->id . ':' . $method->instance_id;
+                $data[ $key ] = [
+                    'logo'               => esc_url( $method->get_option( 'logo', '' ) ),
+                    'cobro_destino'      => $method->get_option( 'cobro_destino', 'no' ),
+                    'cobro_destino_label'=> $method->get_option( 'cobro_destino_label', __( 'Cobro a destino', 'wc-envios-venezuela' ) ),
+                ];
             }
         }
 
+        return $data;
+    }
+
+    /** Mantener retrocompatibilidad con llamadas antiguas a collect_logos() */
+    public static function collect_logos(): array {
+        $logos = [];
+        foreach ( self::collect_rate_data() as $key => $d ) {
+            if ( $d['logo'] ) {
+                $logos[ $key ] = $d['logo'];
+            }
+        }
         return $logos;
     }
 
@@ -59,29 +66,21 @@ class WCEV_Blocks_Integration implements IntegrationInterface {
         wp_register_script(
             'wcev-blocks-frontend',
             WCEV_URL . 'assets/js/blocks-frontend.js',
-            [ 'wc-blocks-checkout', 'jquery' ],
+            [],
             WCEV_VERSION,
             true
         );
     }
 }
 
-/* ── Registro de la integración en el hook correcto ───────────────────────── */
+/* ── Registro en WooCommerce Blocks ───────────────────────────────────────── */
 add_action( 'woocommerce_blocks_loaded', function () {
     if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Package' ) ) {
         return;
     }
-    require_once WCEV_DIR . 'includes/class-wcev-blocks-integration.php';
-    add_action(
-        'woocommerce_blocks_checkout_block_registration',
-        function ( $integration_registry ) {
-            $integration_registry->register( new WCEV_Blocks_Integration() );
-        }
-    );
-    add_action(
-        'woocommerce_blocks_cart_block_registration',
-        function ( $integration_registry ) {
-            $integration_registry->register( new WCEV_Blocks_Integration() );
-        }
-    );
+    $register = function ( $registry ) {
+        $registry->register( new WCEV_Blocks_Integration() );
+    };
+    add_action( 'woocommerce_blocks_checkout_block_registration', $register );
+    add_action( 'woocommerce_blocks_cart_block_registration',     $register );
 } );
