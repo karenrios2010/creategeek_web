@@ -1,0 +1,60 @@
+/* === WC Envíos Venezuela – Admin CSS === */
+
+/* ── Upload de logo ─────────────────────────────────────────────────────────── */
+.wcev-logo-field {
+    display:        flex;
+    flex-direction: column;
+    align-items:    flex-start;
+    gap:            8px;
+}
+
+.wcev-logo-preview {
+    border:        1px solid #ddd;
+    border-radius: 4px;
+    padding:       4px;
+    background:    #f9f9f9;
+}
+
+.wcev-upload-logo,
+.wcev-remove-logo {
+    vertical-align: middle;
+}
+
+/* ── Datepicker campos de fecha ─────────────────────────────────────────────── */
+.wcev-datepicker {
+    max-width: 160px;
+}
+
+/* ── Preview de colores en la sección popup ─────────────────────────────────── */
+.wcev-color-preview {
+    display:        inline-block;
+    width:          24px;
+    height:         24px;
+    border-radius:  4px;
+    border:         1px solid #ccc;
+    vertical-align: middle;
+    margin-left:    6px;
+}
+
+/* ── Aviso de bloque compatible ─────────────────────────────────────────────── */
+.wcev-blocks-notice {
+    background:    #e8f5e9;
+    border-left:   4px solid #4caf50;
+    padding:       8px 12px;
+    font-size:     .85rem;
+    border-radius: 0 4px 4px 0;
+    margin-top:    4px;
+}
+
+/* ── Logo en el listado de métodos de la zona ───────────────────────────────── */
+.wcev-logo-thumb {
+    height:         28px;
+    width:          auto;
+    max-width:      80px;
+    object-fit:     contain;
+    vertical-align: middle;
+    margin-right:   6px;
+    border:         1px solid #eee;
+    border-radius:  3px;
+    padding:        2px;
+}
