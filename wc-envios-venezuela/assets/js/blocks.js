@@ -67,6 +67,47 @@
         }
     }
 
+    /* ── Resumen del pedido: corregir "GRATIS" en la línea de envío ─────── */
+    function fixOrderSummary() {
+        /* Buscar el radio seleccionado actualmente */
+        var checked = document.querySelector(
+            '.wc-block-components-radio-control__option input[type="radio"]:checked, ' +
+            '[class*="radio-control__option"] input[type="radio"]:checked'
+        );
+        if ( ! checked ) return;
+
+        var info = rates[ checked.value ];
+        if ( ! info || info.cobro_destino !== 'yes' ) return;
+
+        /* El resumen del pedido usa distintas clases según la versión de WC Blocks.
+           Apuntamos a todos los candidatos posibles. */
+        var summarySelectors = [
+            '.wc-block-components-totals-shipping .wc-block-components-totals-item__value',
+            '.wc-block-components-totals-shipping [class*="value"]',
+            '[class*="totals-shipping"] [class*="value"]',
+            '.wp-block-woocommerce-checkout-order-summary-shipping-block [class*="value"]',
+            '.wp-block-woocommerce-cart-order-summary-shipping-block [class*="value"]',
+        ];
+
+        document.querySelectorAll( summarySelectors.join( ',' ) ).forEach( function ( el ) {
+            /* Leer solo el texto del nodo raíz, sin nodos hijo nuestros */
+            var raw = '';
+            el.childNodes.forEach( function ( n ) {
+                if ( n.nodeType === Node.TEXT_NODE ) raw += n.textContent;
+                else if ( ! n.classList || ! n.classList.contains( 'wcev-cobro-tag' ) ) raw += n.textContent;
+            } );
+
+            if ( ! isFree( raw ) ) return;
+
+            /* Reemplazar contenido */
+            el.textContent = '';
+            var tag       = document.createElement( 'span' );
+            tag.className = 'wcev-cobro-tag';
+            tag.textContent = info.cobro_destino_label || 'Cobro a destino';
+            el.appendChild( tag );
+        } );
+    }
+
     /* ── Escanear todos los options visibles ─────────────────────────────── */
     function scan() {
         /* Selector que cubre WC Blocks 8.x / 9.x / 10.x / 11.x */
@@ -74,6 +115,9 @@
             '.wc-block-components-radio-control__option, [class*="radio-control__option"]'
         );
         opts.forEach( processOption );
+
+        /* Corregir también el resumen lateral del pedido */
+        fixOrderSummary();
     }
 
     /* ── MutationObserver con rAF y debounce ─────────────────────────────── */
