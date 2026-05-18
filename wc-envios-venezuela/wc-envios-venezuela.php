@@ -3,7 +3,7 @@
  * Plugin Name: WC Envíos Venezuela
  * Plugin URI:  https://creategeek.agency
  * Description: Métodos de envío para Venezuela (MRW, Zoom, Tealca, Personalizado) con cobro a destino y popup de promociones.
- * Version:     1.1.1
+ * Version:     1.1.2
  * Author:      CreateGeek Agency
  * Text Domain: wc-envios-venezuela
  * Domain Path: /languages
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WCEV_VERSION', '1.1.1' );
+define( 'WCEV_VERSION', '1.1.2' );
 define( 'WCEV_FILE',    __FILE__ );
 define( 'WCEV_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'WCEV_URL',     plugin_dir_url( __FILE__ ) );
