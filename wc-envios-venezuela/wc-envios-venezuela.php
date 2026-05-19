@@ -3,7 +3,7 @@
  * Plugin Name: WC Envíos Venezuela
  * Plugin URI:  https://creategeek.agency
  * Description: Métodos de envío para Venezuela (MRW, Zoom, Tealca, Personalizado) con cobro a destino y popup de promociones.
- * Version:     1.1.2
+ * Version:     1.1.3
  * Author:      CreateGeek Agency
  * Text Domain: wc-envios-venezuela
  * Domain Path: /languages
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WCEV_VERSION', '1.1.2' );
+define( 'WCEV_VERSION', '1.1.3' );
 define( 'WCEV_FILE',    __FILE__ );
 define( 'WCEV_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'WCEV_URL',     plugin_dir_url( __FILE__ ) );
@@ -82,9 +82,13 @@ function wcev_frontend_assets() {
 
 /* ── Assets admin ─────────────────────────────────────────────────────────── */
 function wcev_admin_assets( $hook ) {
-    if ( 'woocommerce_page_wc-settings' !== $hook ) {
+    /* Cargar en cualquier subtab de WC settings (zonas, opciones, classes, etc.).
+       Detectamos por la query string ?page=wc-settings para cubrir todos los casos. */
+    $page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+    if ( 'wc-settings' !== $page && 'woocommerce_page_wc-settings' !== $hook ) {
         return;
     }
+
     wp_enqueue_media();
     wp_enqueue_style( 'wcev-admin', WCEV_URL . 'admin/assets/admin.css', [], WCEV_VERSION );
     wp_enqueue_script( 'wcev-admin', WCEV_URL . 'admin/assets/admin.js', [ 'jquery', 'jquery-ui-datepicker' ], WCEV_VERSION, true );
