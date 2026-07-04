@@ -122,33 +122,94 @@ class KR_DP_BCV {
 	}
 
 	/**
-	 * Fetch and parse the BCV home page.
+	 * Live connectivity check for the admin status line: clears the failure
+	 * cooldown and forces a synchronous fetch when no fresh rate is cached.
+	 *
+	 * @return array Same shape as get_rates().
+	 */
+	public static function check_now() {
+		delete_transient( self::FAIL_TRANSIENT );
+		$rates = get_transient( self::TRANSIENT );
+		if ( ! is_array( $rates ) || ( empty( $rates['euro'] ) && empty( $rates['dolar'] ) ) ) {
+			self::refresh();
+		}
+		return self::get_rates();
+	}
+
+	/**
+	 * Try each source in order until one returns rates. The BCV site blocks
+	 * many datacenter IP ranges, so two community mirrors of the official
+	 * rate act as fallbacks. Filterable via 'kr_dp_bcv_source_order'.
 	 *
 	 * @return array|false
 	 */
 	protected static function fetch() {
+		$order = (array) apply_filters( 'kr_dp_bcv_source_order', array( 'bcv', 'pydolarve', 'dolarapi' ) );
+
+		foreach ( $order as $source_id ) {
+			$rates = false;
+			switch ( $source_id ) {
+				case 'bcv':
+					$rates = self::fetch_bcv_html();
+					break;
+				case 'pydolarve':
+					$rates = self::fetch_pydolarve();
+					break;
+				case 'dolarapi':
+					$rates = self::fetch_dolarapi();
+					break;
+			}
+			if ( is_array( $rates ) && ( ! empty( $rates['euro'] ) || ! empty( $rates['dolar'] ) ) ) {
+				$rates['source'] = $source_id;
+				$rates['date']   = current_time( 'mysql' );
+				return $rates;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Shared HTTP GET with a browser-like user agent and short timeout.
+	 *
+	 * @param string $url      URL.
+	 * @param bool   $insecure_retry Retry without SSL verification on error.
+	 * @return string Body or ''.
+	 */
+	protected static function http_get( $url, $insecure_retry = false ) {
 		$args = array(
 			'timeout'     => 8,
 			'redirection' => 3,
 			'user-agent'  => 'Mozilla/5.0 (X11; Linux x86_64) KR-Direct-Payments/' . KR_DP_VERSION,
 		);
 
-		$response = wp_remote_get( self::SOURCE_URL, $args );
+		$response = wp_remote_get( $url, $args );
 
-		// La cadena de certificados del BCV suele fallar la verificacion SSL;
-		// se reintenta sin verificar solo como ultimo recurso (filtrable).
-		if ( is_wp_error( $response ) && apply_filters( 'kr_dp_bcv_allow_insecure', true ) ) {
+		if ( is_wp_error( $response ) && $insecure_retry && apply_filters( 'kr_dp_bcv_allow_insecure', true ) ) {
 			$args['sslverify'] = false;
-			$response          = wp_remote_get( self::SOURCE_URL, $args );
+			$response          = wp_remote_get( $url, $args );
 		}
 
 		if ( is_wp_error( $response ) || 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			return '';
+		}
+		return (string) wp_remote_retrieve_body( $response );
+	}
+
+	/**
+	 * Source 1: official BCV home page (EUR + USD).
+	 *
+	 * @return array|false
+	 */
+	protected static function fetch_bcv_html() {
+		// La cadena de certificados del BCV suele fallar la verificacion SSL,
+		// por eso se permite el reintento sin verificar solo en esta fuente.
+		$html = self::http_get( self::SOURCE_URL, true );
+		if ( '' === $html ) {
 			return false;
 		}
 
-		$html  = wp_remote_retrieve_body( $response );
 		$rates = array();
-
 		foreach ( array( 'euro', 'dolar' ) as $currency ) {
 			// Ej.: <div id="euro" ...> ... <strong> 106,34910000 </strong>
 			if ( preg_match( '/id="' . $currency . '"[^>]*>.*?<strong>\s*([0-9][0-9.,]*)\s*<\/strong>/is', $html, $m ) ) {
@@ -159,13 +220,58 @@ class KR_DP_BCV {
 				}
 			}
 		}
+		return $rates ? $rates : false;
+	}
 
-		if ( empty( $rates['euro'] ) && empty( $rates['dolar'] ) ) {
+	/**
+	 * Source 2: pydolarve.org mirror of the official BCV page (EUR + USD).
+	 * Parses defensively: accepts {"monitors":{"eur":{"price":X},...}} or a
+	 * flat {"eur":{"price":X},"usd":{...}} shape.
+	 *
+	 * @return array|false
+	 */
+	protected static function fetch_pydolarve() {
+		$body = self::http_get( 'https://pydolarve.org/api/v1/dollar?page=bcv' );
+		if ( '' === $body ) {
 			return false;
 		}
+		$data = json_decode( $body, true );
+		if ( ! is_array( $data ) ) {
+			return false;
+		}
+		$monitors = isset( $data['monitors'] ) && is_array( $data['monitors'] ) ? $data['monitors'] : $data;
 
-		$rates['date'] = current_time( 'mysql' );
-		return $rates;
+		$rates = array();
+		foreach ( array( 'eur' => 'euro', 'usd' => 'dolar' ) as $key => $slot ) {
+			if ( isset( $monitors[ $key ]['price'] ) && (float) $monitors[ $key ]['price'] > 0 ) {
+				$rates[ $slot ] = round( (float) $monitors[ $key ]['price'], 8 );
+			}
+		}
+		return $rates ? $rates : false;
+	}
+
+	/**
+	 * Source 3: ve.dolarapi.com official rate (USD only).
+	 *
+	 * @return array|false
+	 */
+	protected static function fetch_dolarapi() {
+		$body = self::http_get( 'https://ve.dolarapi.com/v1/dolares/oficial' );
+		if ( '' === $body ) {
+			return false;
+		}
+		$data = json_decode( $body, true );
+		if ( ! is_array( $data ) ) {
+			return false;
+		}
+		$price = 0.0;
+		foreach ( array( 'promedio', 'venta', 'compra', 'price' ) as $key ) {
+			if ( isset( $data[ $key ] ) && (float) $data[ $key ] > 0 ) {
+				$price = (float) $data[ $key ];
+				break;
+			}
+		}
+		return $price > 0 ? array( 'dolar' => round( $price, 8 ) ) : false;
 	}
 }
 

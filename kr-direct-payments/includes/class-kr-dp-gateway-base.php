@@ -448,7 +448,7 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		if ( ! is_admin() || ! class_exists( 'KR_DP_BCV' ) ) {
 			return '';
 		}
-		$rates = KR_DP_BCV::get_rates();
+		$rates = KR_DP_BCV::check_now();
 		if ( ! empty( $rates['euro'] ) || ! empty( $rates['dolar'] ) ) {
 			$parts = array();
 			if ( ! empty( $rates['euro'] ) ) {
@@ -457,10 +457,16 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 			if ( ! empty( $rates['dolar'] ) ) {
 				$parts[] = 'USD = ' . kr_dp_format_bs( $rates['dolar'] );
 			}
-			$date = ! empty( $rates['date'] ) ? $rates['date'] : '';
-			return '<br /><span style="color:#1aa06d;font-weight:600">&#10003; ' . esc_html__( 'Conexion BCV OK.', 'kr-direct-payments' ) . '</span> ' . esc_html( implode( ' | ', $parts ) ) . ( $date ? ' <em>(' . esc_html__( 'obtenida:', 'kr-direct-payments' ) . ' ' . esc_html( $date ) . ')</em>' : '' );
+			$date    = ! empty( $rates['date'] ) ? $rates['date'] : '';
+			$sources = array(
+				'bcv'       => 'bcv.org.ve',
+				'pydolarve' => 'pydolarve.org (espejo BCV)',
+				'dolarapi'  => 've.dolarapi.com (espejo BCV)',
+			);
+			$src = ! empty( $rates['source'] ) && isset( $sources[ $rates['source'] ] ) ? $sources[ $rates['source'] ] : '';
+			return '<br /><span style="color:#1aa06d;font-weight:600">&#10003; ' . esc_html__( 'Tasa oficial obtenida.', 'kr-direct-payments' ) . '</span> ' . esc_html( implode( ' | ', $parts ) ) . ( $src ? ' &mdash; ' . esc_html__( 'fuente:', 'kr-direct-payments' ) . ' ' . esc_html( $src ) : '' ) . ( $date ? ' <em>(' . esc_html( $date ) . ')</em>' : '' );
 		}
-		return '<br /><span style="color:#d63638;font-weight:600">&#10007; ' . esc_html__( 'No se ha podido obtener la tasa del BCV desde este servidor.', 'kr-direct-payments' ) . '</span> ' . esc_html__( 'Revisa que tu hosting permita conexiones salientes a bcv.org.ve, o define una tasa manual de respaldo abajo.', 'kr-direct-payments' );
+		return '<br /><span style="color:#d63638;font-weight:600">&#10007; ' . esc_html__( 'No se ha podido obtener la tasa desde ninguna fuente (BCV ni espejos).', 'kr-direct-payments' ) . '</span> ' . esc_html__( 'Tu hosting parece bloquear las conexiones salientes. Define una tasa manual de respaldo abajo y contacta a tu hosting para permitir conexiones a bcv.org.ve, pydolarve.org y ve.dolarapi.com.', 'kr-direct-payments' );
 	}
 
 	/**
