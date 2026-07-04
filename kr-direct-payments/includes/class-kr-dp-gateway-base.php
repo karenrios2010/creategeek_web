@@ -77,6 +77,17 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 	public function process_admin_options() {
 		$saved = parent::process_admin_options();
 		update_option( 'kr_dp_ui_lang', $this->get_option( 'ui_language', 'es' ) );
+
+		// Mirror the BCV refresh interval globally and re-arm the cron so
+		// the new frequency takes effect immediately.
+		$minutes = (int) $this->get_option( 'bcv_cache_minutes', 30 );
+		$minutes = max( 5, min( 1440, $minutes ? $minutes : 30 ) );
+		if ( (int) get_option( 'kr_dp_bcv_cache_minutes', 30 ) !== $minutes ) {
+			update_option( 'kr_dp_bcv_cache_minutes', $minutes );
+			if ( function_exists( 'kr_dp_bcv_reschedule' ) ) {
+				kr_dp_bcv_reschedule();
+			}
+		}
 		return $saved;
 	}
 
@@ -403,6 +414,18 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 				'options' => array(
 					'euro'  => __( 'Euro (EUR) del dia', 'kr-direct-payments' ),
 					'dolar' => __( 'Dolar (USD) del dia', 'kr-direct-payments' ),
+				),
+			),
+			'bcv_cache_minutes' => array(
+				'title'             => __( 'Actualizar tasa cada (minutos)', 'kr-direct-payments' ),
+				'type'              => 'number',
+				'description'       => __( 'Frecuencia con la que se consulta bcv.org.ve en segundo plano. Minimo 5, maximo 1440. Aplica a todos los metodos del plugin.', 'kr-direct-payments' ),
+				'default'           => '30',
+				'desc_tip'          => true,
+				'custom_attributes' => array(
+					'min'  => '5',
+					'max'  => '1440',
+					'step' => '5',
 				),
 			),
 		);

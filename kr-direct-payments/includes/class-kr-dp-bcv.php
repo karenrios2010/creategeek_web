@@ -2,9 +2,13 @@
 /**
  * BCV exchange-rate fetcher for KR Direct Payments.
  *
- * Scrapes the official published rates (EUR and USD) from bcv.org.ve,
- * caches them in a transient and keeps the last known value as fallback
- * so the checkout never hits the BCV site on every page load.
+ * Scrapes the official published rates (EUR and USD) from bcv.org.ve.
+ *
+ * Speed model: front-end requests NEVER wait for the BCV site. A WP-Cron
+ * task refreshes the rate in the background on a configurable interval
+ * (default 30 min); visitors always read the cached/last-known value.
+ * The only synchronous fetch happens once, on a fresh install with no
+ * stored rate yet.
  *
  * @package KR_Direct_Payments
  */
@@ -21,7 +25,24 @@ class KR_DP_BCV {
 	const SOURCE_URL     = 'https://www.bcv.org.ve/';
 
 	/**
+	 * Refresh interval in seconds, from the admin setting (minutes).
+	 * Clamped to 5 min - 24 h. Default 30 min. Filterable.
+	 *
+	 * @return int
+	 */
+	public static function cache_seconds() {
+		$minutes = (int) get_option( 'kr_dp_bcv_cache_minutes', 30 );
+		if ( $minutes < 5 || $minutes > 1440 ) {
+			$minutes = 30;
+		}
+		return (int) apply_filters( 'kr_dp_bcv_cache_seconds', $minutes * MINUTE_IN_SECONDS );
+	}
+
+	/**
 	 * Get the cached rates array: array( 'euro' => float, 'dolar' => float, 'date' => 'Y-m-d H:i:s' ).
+	 *
+	 * Never blocks the visitor when a previous rate exists: an expired
+	 * cache returns the last known value and queues a background refresh.
 	 *
 	 * @return array
 	 */
@@ -31,22 +52,50 @@ class KR_DP_BCV {
 			return $rates;
 		}
 
-		// Cooldown after a failed fetch: fall back to the last known rate.
-		if ( get_transient( self::FAIL_TRANSIENT ) ) {
-			$last = get_option( self::LAST_OPTION );
-			return is_array( $last ) ? $last : array();
+		$last = get_option( self::LAST_OPTION );
+		if ( is_array( $last ) && ( ! empty( $last['euro'] ) || ! empty( $last['dolar'] ) ) ) {
+			// Stale-while-revalidate: responder al instante con la ultima
+			// tasa y actualizar en segundo plano sin bloquear la pagina.
+			self::queue_background_refresh();
+			return $last;
 		}
 
+		// Primera vez (sin tasa guardada): unica consulta sincrona.
+		if ( get_transient( self::FAIL_TRANSIENT ) ) {
+			return array();
+		}
+		$rates = self::refresh();
+		return is_array( $rates ) ? $rates : array();
+	}
+
+	/**
+	 * Force-fetch from bcv.org.ve and persist. Used by the WP-Cron task.
+	 *
+	 * @return array|false
+	 */
+	public static function refresh() {
 		$rates = self::fetch();
 		if ( $rates ) {
-			set_transient( self::TRANSIENT, $rates, (int) apply_filters( 'kr_dp_bcv_cache_seconds', 3 * HOUR_IN_SECONDS ) );
+			set_transient( self::TRANSIENT, $rates, self::cache_seconds() );
 			update_option( self::LAST_OPTION, $rates, false );
+			delete_transient( self::FAIL_TRANSIENT );
 			return $rates;
 		}
+		set_transient( self::FAIL_TRANSIENT, 1, 5 * MINUTE_IN_SECONDS );
+		return false;
+	}
 
-		set_transient( self::FAIL_TRANSIENT, 1, 15 * MINUTE_IN_SECONDS );
-		$last = get_option( self::LAST_OPTION );
-		return is_array( $last ) ? $last : array();
+	/**
+	 * Queue a one-off async refresh (fires via WP-Cron on this same
+	 * request's shutdown loopback, without delaying the visitor).
+	 */
+	protected static function queue_background_refresh() {
+		if ( get_transient( self::FAIL_TRANSIENT ) ) {
+			return;
+		}
+		if ( ! wp_next_scheduled( 'kr_dp_bcv_refresh_single' ) ) {
+			wp_schedule_single_event( time(), 'kr_dp_bcv_refresh_single' );
+		}
 	}
 
 	/**
@@ -79,7 +128,7 @@ class KR_DP_BCV {
 	 */
 	protected static function fetch() {
 		$args = array(
-			'timeout'     => 15,
+			'timeout'     => 8,
 			'redirection' => 3,
 			'user-agent'  => 'Mozilla/5.0 (X11; Linux x86_64) KR-Direct-Payments/' . KR_DP_VERSION,
 		);

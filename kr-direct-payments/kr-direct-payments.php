@@ -2,7 +2,7 @@
 /**
  * Plugin Name: KR Direct Payments
  * Description: Metodos de pago manuales para WooCommerce (Zelle, Transferencia Bancaria, Pago Movil y Binance) con apariencia configurable, formulario de verificacion, carga de comprobante, recargo fijo por metodo y total en Bs. segun la tasa BCV. Compatible con HPOS y Checkout Blocks.
- * Version: 2.2.0
+ * Version: 2.3.0
  * Author: Karen Rios
  * Requires PHP: 7.4
  * Requires at least: 5.8
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'KR_DP_VERSION', '2.2.0' );
+define( 'KR_DP_VERSION', '2.3.0' );
 define( 'KR_DP_PLUGIN_FILE', __FILE__ );
 define( 'KR_DP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KR_DP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -124,6 +124,54 @@ add_action(
 				)
 			);
 		}
+	}
+);
+
+/* ------------------------------------------------------------------ *
+ * BCV rate: background refresh via WP-Cron so the checkout never waits
+ * for bcv.org.ve. Interval follows the "bcv_cache_minutes" setting.
+ * ------------------------------------------------------------------ */
+add_filter(
+	'cron_schedules',
+	function ( $schedules ) {
+		$schedules['kr_dp_bcv'] = array(
+			'interval' => class_exists( 'KR_DP_BCV' ) ? KR_DP_BCV::cache_seconds() : 30 * MINUTE_IN_SECONDS,
+			'display'  => 'KR Direct Payments - tasa BCV',
+		);
+		return $schedules;
+	}
+);
+
+add_action( 'kr_dp_bcv_refresh', 'kr_dp_bcv_do_refresh' );
+add_action( 'kr_dp_bcv_refresh_single', 'kr_dp_bcv_do_refresh' );
+function kr_dp_bcv_do_refresh() {
+	if ( class_exists( 'KR_DP_BCV' ) ) {
+		KR_DP_BCV::refresh();
+	}
+}
+
+add_action(
+	'init',
+	function () {
+		if ( class_exists( 'KR_DP_BCV' ) && ! wp_next_scheduled( 'kr_dp_bcv_refresh' ) ) {
+			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'kr_dp_bcv', 'kr_dp_bcv_refresh' );
+		}
+	}
+);
+
+/**
+ * Re-arm the recurring refresh (used when the interval setting changes).
+ */
+function kr_dp_bcv_reschedule() {
+	wp_clear_scheduled_hook( 'kr_dp_bcv_refresh' );
+	wp_schedule_event( time() + MINUTE_IN_SECONDS, 'kr_dp_bcv', 'kr_dp_bcv_refresh' );
+}
+
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		wp_clear_scheduled_hook( 'kr_dp_bcv_refresh' );
+		wp_clear_scheduled_hook( 'kr_dp_bcv_refresh_single' );
 	}
 );
 
