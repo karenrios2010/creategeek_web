@@ -104,5 +104,45 @@
 					if ( submit ) { submit.disabled = false; }
 				} );
 		} );
+
+		// Two-column layout: place the form beside the order summary.
+		layoutBeside();
 	} );
+
+	function layoutBeside() {
+		var box = document.querySelector( '.kr-dp[data-layout="beside"]' );
+		if ( ! box ) {
+			return;
+		}
+		var details  = document.querySelector( '.woocommerce-order-details' );
+		var customer = document.querySelector( '.woocommerce-customer-details' );
+		if ( ! details ) {
+			return; // Nothing to sit beside.
+		}
+		if ( box.closest( '.kr-dp-cols' ) ) {
+			return; // Already arranged.
+		}
+
+		var wrap  = document.createElement( 'div' );
+		wrap.className = 'kr-dp-cols';
+		var left  = document.createElement( 'div' );
+		left.className = 'kr-dp-col-left';
+		var right = document.createElement( 'div' );
+		right.className = 'kr-dp-col-right';
+
+		// Insert the wrapper where the order details currently are.
+		details.parentNode.insertBefore( wrap, details );
+
+		// Left column: order details + customer addresses.
+		left.appendChild( details );
+		if ( customer ) {
+			left.appendChild( customer );
+		}
+		// Right column: the payment form.
+		right.appendChild( box );
+
+		wrap.appendChild( left );
+		wrap.appendChild( right );
+	}
 }() );
+

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: KR Direct Payments
  * Description: Metodos de pago manuales para WooCommerce (Zelle, Transferencia Bancaria, Pago Movil y Binance) con apariencia configurable, formulario de verificacion, carga de comprobante, recargo fijo por metodo y total en Bs. segun la tasa BCV. Compatible con HPOS y Checkout Blocks.
- * Version: 1.1.0
+ * Version: 2.2.0
  * Author: Karen Rios
  * Requires PHP: 7.4
  * Requires at least: 5.8
@@ -20,13 +20,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'KR_DP_VERSION', '1.1.0' );
+define( 'KR_DP_VERSION', '2.2.0' );
 define( 'KR_DP_PLUGIN_FILE', __FILE__ );
 define( 'KR_DP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KR_DP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * Gateway ids handled by this plugin.
+ *
+ * Unified plugin: Zelle, Bank Transfer, Pago Movil and Binance.
  *
  * @return array
  */
@@ -412,4 +414,179 @@ function kr_dp_admin_order_data( $order ) {
 	}
 
 	echo '</div>';
+}
+
+/* ------------------------------------------------------------------ *
+ * Safety net: if the legacy standalone "KR Zelle Gateway" plugin is still
+ * active, it ALSO renders a Zelle form on the order-received page (both use
+ * the kr_zelle id). We remove its render callback so only this unified
+ * plugin draws the form, and we show an admin notice recommending removal.
+ * ------------------------------------------------------------------ */
+add_action( 'woocommerce_thankyou_kr_zelle', 'kr_dp_dedupe_legacy_zelle', 1 );
+function kr_dp_dedupe_legacy_zelle( $order_id ) {
+	if ( ! class_exists( 'KR_WC_Gateway_Zelle' ) ) {
+		return;
+	}
+	global $wp_filter;
+	$hook = 'woocommerce_thankyou_kr_zelle';
+	if ( empty( $wp_filter[ $hook ] ) ) {
+		return;
+	}
+	foreach ( $wp_filter[ $hook ]->callbacks as $prio => $callbacks ) {
+		foreach ( $callbacks as $id => $cb ) {
+			$fn = isset( $cb['function'] ) ? $cb['function'] : null;
+			if ( is_array( $fn ) && isset( $fn[0] ) && is_object( $fn[0] ) && $fn[0] instanceof KR_WC_Gateway_Zelle ) {
+				unset( $wp_filter[ $hook ]->callbacks[ $prio ][ $id ] );
+			}
+		}
+	}
+}
+
+add_action(
+	'admin_notices',
+	function () {
+		if ( ! class_exists( 'KR_WC_Gateway_Zelle' ) || ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+		echo '<div class="notice notice-warning"><p><strong>KR Direct Payments:</strong> '
+			. esc_html__( 'Tienes activo tambien el plugin "KR Zelle Gateway", que duplica el formulario de Zelle. Este plugin unificado ya incluye Zelle: por favor desactiva y elimina "KR Zelle Gateway" para evitar el duplicado.', 'kr-direct-payments' )
+			. ' <a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">' . esc_html__( 'Ir a Plugins', 'kr-direct-payments' ) . '</a></p></div>';
+	}
+);
+
+/* ------------------------------------------------------------------ *
+ * Translation layer. Source strings are written without accents to keep
+ * the source ASCII-safe; this maps them to properly accented Spanish by
+ * default, or to English when the language is set to "en".
+ * Controlled by the per-method "Idioma / Language" setting (mirrored into
+ * the global "kr_dp_ui_lang" option on save).
+ * ------------------------------------------------------------------ */
+add_filter( 'gettext', 'kr_dp_translate', 10, 3 );
+function kr_dp_translate( $translated, $text, $domain ) {
+	if ( 'kr-direct-payments' !== $domain ) {
+		return $translated;
+	}
+	static $lang = null;
+	if ( null === $lang ) {
+		$lang = get_option( 'kr_dp_ui_lang', 'es' );
+	}
+	$map = kr_dp_i18n_map( $lang );
+	return isset( $map[ $text ] ) ? $map[ $text ] : $translated;
+}
+
+/**
+ * Build the translation map for a language.
+ *
+ * @param string $lang Language code.
+ * @return array
+ */
+function kr_dp_i18n_map( $lang ) {
+	static $cache = array();
+	if ( isset( $cache[ $lang ] ) ) {
+		return $cache[ $lang ];
+	}
+
+	if ( 'en' === $lang ) {
+		$cache[ $lang ] = array(
+			'Ya casi, %s!'                                   => 'Almost there, %s!',
+			'Ya casi!'                                       => 'Almost there!',
+			'Envia tu pago para completar tu pedido'         => 'Send your payment to complete your order',
+			'Pedido realizado'                               => 'Order placed',
+			'Envia el pago'                                  => 'Send payment',
+			'Accion requerida'                               => 'Action required',
+			'Envia %1$s via %2$s'                            => 'Send %1$s via %2$s',
+			'Incluye en la nota'                             => 'Include in memo',
+			'Copiar'                                         => 'Copy',
+			'Comprobante / captura del pago'                 => 'Payment proof / screenshot',
+			'JPG, PNG, WEBP o PDF. Maximo 5 MB.'             => 'JPG, PNG, WEBP or PDF. Max 5 MB.',
+			'Registrar mi pago'                              => 'Submit my payment',
+			'Completa estos datos para verificar tu pago'    => 'Complete these details to verify your payment',
+			'Ya recibimos los datos de tu pago. Lo estamos verificando.' => 'We received your payment details. We are verifying it.',
+			'Que pasa despues?'                              => 'What happens next?',
+			'Soporte:'                                       => 'Support:',
+			'Seleccione'                                     => 'Select',
+			'Realiza el pago con los siguientes datos y luego registra tu comprobante.' => 'Make the payment with the details below, then submit your proof.',
+			// Zelle.
+			'Titular'                                        => 'Account holder',
+			'Email'                                          => 'Email',
+			'Telefono'                                       => 'Phone',
+			'Numero de confirmacion Zelle'                   => 'Zelle confirmation number',
+			'Nombre de quien envia'                          => 'Sender name',
+			'Nombre de la persona que envio el pago'         => 'Name of the person who sent the payment',
+			// Bank.
+			'Nombre del Banco'                               => 'Bank name',
+			'Numero de Cuenta'                               => 'Account number',
+			'Beneficiario'                                   => 'Beneficiary',
+			'Fecha de transferencia'                         => 'Transfer date',
+			'Numero de referencia'                           => 'Reference number',
+			'Cedula de identidad emisor'                     => 'Sender ID',
+			'Codigo de telefono'                             => 'Phone code',
+			'Numero de telefono'                             => 'Phone number',
+			'Banco emisor'                                   => 'Sender bank',
+			'Banco receptor'                                 => 'Receiver bank',
+			'Numero de cuenta bancaria'                      => 'Bank account number',
+			'Monto transferido'                              => 'Transferred amount',
+			// Pago Movil.
+			'Codigo del Banco'                               => 'Bank code',
+			'Cedula-RIF'                                     => 'ID-RIF',
+			'Telefono del Cliente'                           => 'Customer phone',
+			'Tipo de documento'                              => 'Document type',
+			'Cedula o RIF del Cliente'                       => 'Customer ID or RIF',
+			'Codigo del Banco del Cliente'                   => 'Customer bank code',
+			'Numero de la Referencia Bancaria'               => 'Bank reference number',
+			// Binance.
+			'ID de transaccion / Order ID'                   => 'Transaction ID / Order ID',
+			'Tu Pay ID o email Binance'                      => 'Your Binance Pay ID or email',
+			'Monto enviado'                                  => 'Amount sent',
+			'Red / moneda'                                   => 'Network / coin',
+			'Email / usuario'                                => 'Email / username',
+			'Monto'                                          => 'Amount',
+			// Recargo + BCV.
+			'Comision %s'                                    => '%s fee',
+			'Este metodo aplica un recargo fijo de %s.'      => 'This method adds a fixed %s surcharge.',
+			'Total a pagar en Bs.'                           => 'Total to pay in Bs.',
+			'Total a pagar en Bs.:'                          => 'Total to pay in Bs.:',
+			'Total en Bs.'                                   => 'Total in Bs.',
+			'Monto a pagar en Bs.'                           => 'Amount to pay in Bs.',
+			'Tasa BCV (%s)'                                  => 'BCV rate (%s)',
+			'Tasa BCV (%1$s) del dia: %2$s'                  => 'BCV rate (%1$s) today: %2$s',
+		);
+	} else {
+		// Spanish with proper accents / punctuation.
+		$cache[ $lang ] = array(
+			'Ya casi, %s!'                                   => 'Ya casi, %s!',
+			'Ya casi!'                                       => 'Ya casi!',
+			'Envia tu pago para completar tu pedido'         => 'Envía tu pago para completar tu pedido',
+			'Envia el pago'                                  => 'Envía el pago',
+			'Accion requerida'                               => 'Acción requerida',
+			'Envia %1$s via %2$s'                            => 'Envía %1$s vía %2$s',
+			'Que pasa despues?'                              => '¿Qué pasa después?',
+			'Telefono'                                       => 'Teléfono',
+			'Numero de confirmacion Zelle'                   => 'Número de confirmación Zelle',
+			'Nombre de quien envia'                          => 'Nombre de quién envía',
+			'Nombre de la persona que envio el pago'         => 'Nombre de la persona que envió el pago',
+			'JPG, PNG, WEBP o PDF. Maximo 5 MB.'             => 'JPG, PNG, WEBP o PDF. Máximo 5 MB.',
+			'Numero de Cuenta'                               => 'Número de Cuenta',
+			'Numero de referencia'                           => 'Número de referencia',
+			'Cedula de identidad emisor'                     => 'Cédula de identidad emisor',
+			'Codigo de telefono'                             => 'Código de teléfono',
+			'Numero de telefono'                             => 'Número de teléfono',
+			'Numero de cuenta bancaria'                      => 'Número de cuenta bancaria',
+			'Codigo del Banco'                               => 'Código del Banco',
+			'Cedula-RIF'                                     => 'Cédula-RIF',
+			'Telefono del Cliente'                           => 'Teléfono del Cliente',
+			'Cedula o RIF del Cliente'                       => 'Cédula o RIF del Cliente',
+			'Codigo del Banco del Cliente'                   => 'Código del Banco del Cliente',
+			'Numero de la Referencia Bancaria'               => 'Número de la Referencia Bancaria',
+			'ID de transaccion / Order ID'                   => 'ID de transacción / Order ID',
+			'Realiza el pago con los siguientes datos y luego registra tu comprobante.' => 'Realiza el pago con los siguientes datos y luego registra tu comprobante.',
+			'Incluir tu numero de pedido en la nota nos ayuda a procesar tu pago mas rapido.' => 'Incluir tu número de pedido en la nota nos ayuda a procesar tu pago más rápido.',
+			'Una vez recibido tu pago, procesaremos tu pedido y te enviaremos un correo de confirmacion con la informacion de seguimiento.' => 'Una vez recibido tu pago, procesaremos tu pedido y te enviaremos un correo de confirmación con la información de seguimiento.',
+			// Recargo + BCV.
+			'Comision %s'                                    => 'Comisión %s',
+			'Este metodo aplica un recargo fijo de %s.'      => 'Este método aplica un recargo fijo de %s.',
+			'Tasa BCV (%1$s) del dia: %2$s'                  => 'Tasa BCV (%1$s) del día: %2$s',
+		);
+	}
+	return $cache[ $lang ];
 }

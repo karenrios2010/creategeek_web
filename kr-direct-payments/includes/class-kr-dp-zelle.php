@@ -1,8 +1,8 @@
 <?php
 /**
- * Zelle payment method.
+ * Zelle payment method (part of the unified KR Direct Payments plugin).
  *
- * Uses id "kr_zelle" so existing settings from the standalone plugin carry over.
+ * Uses id "kr_zelle" so prior settings carry over.
  *
  * @package KR_Direct_Payments
  */
@@ -50,7 +50,6 @@ class KR_DP_Zelle extends KR_DP_Gateway_Base {
 			array( 'label' => __( 'Titular', 'kr-direct-payments' ), 'value' => $this->get_option( 'account_name', '' ), 'copy' => true ),
 			array( 'label' => __( 'Email', 'kr-direct-payments' ), 'value' => $this->get_option( 'account_email', '' ), 'copy' => true ),
 			array( 'label' => __( 'Telefono', 'kr-direct-payments' ), 'value' => $this->get_option( 'account_phone', '' ), 'copy' => true ),
-			array( 'label' => __( 'Monto', 'kr-direct-payments' ), 'value' => html_entity_decode( wp_strip_all_tags( $order->get_formatted_order_total() ) ), 'copy' => true ),
 		);
 	}
 
@@ -66,7 +65,7 @@ class KR_DP_Zelle extends KR_DP_Gateway_Base {
 				'label'       => __( 'Nombre de quien envia', 'kr-direct-payments' ),
 				'type'        => 'text',
 				'required'    => false,
-				'placeholder' => '',
+				'placeholder' => __( 'Nombre de la persona que envio el pago', 'kr-direct-payments' ),
 			),
 		);
 	}

@@ -181,3 +181,107 @@
 	color: #777;
 	font-size: 13px;
 }
+
+/* ---- Unified polished layout (stepper / badge / amount / next steps) ---- */
+.kr-dp-head {
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	gap: 4px;
+}
+.kr-dp-head-icon { display: inline-block; }
+.kr-dp-head-hi {
+	font-size: var(--krdp-font-title, 22px);
+	font-weight: 800;
+	margin-top: 2px;
+}
+.kr-dp-head-sub { opacity: .92; font-size: .92em; }
+
+.kr-dp-steps {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin: 14px 0 6px;
+	font-size: .9em;
+	color: #555;
+}
+.kr-dp-dot {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #fff;
+}
+.kr-dp-dot.done { background: var(--krdp-success, #1aa06d); }
+.kr-dp-dot.active { background: var(--krdp-accent, #6d1ed4); }
+.kr-dp-line { flex: 0 0 36px; height: 2px; background: var(--krdp-border, rgba(127,127,127,.3)); }
+
+.kr-dp-body { padding: 4px 2px 2px; }
+
+.kr-dp-badge {
+	display: inline-block;
+	background: var(--krdp-badge-bg, #f6a609);
+	color: var(--krdp-badge-text, #fff);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	padding: 4px 10px;
+	border-radius: 999px;
+	margin: 10px 0 8px;
+}
+.kr-dp-amount {
+	font-size: var(--krdp-font-amount, 20px);
+	font-weight: 800;
+	color: var(--krdp-accent, #6d1ed4);
+	margin-bottom: 12px;
+}
+.kr-dp-memo-note {
+	font-size: .88em;
+	color: #666;
+	margin: 6px 0 14px;
+}
+.kr-dp-next {
+	margin-top: 16px;
+	padding: 12px 14px;
+	border: 1px solid rgba(26,160,109,.35);
+	background: rgba(26,160,109,.08);
+	border-radius: var(--krdp-radius, 12px);
+	font-size: .92em;
+	line-height: 1.5;
+}
+
+/* ---- Two-column layout (form beside the order summary) ---- */
+.kr-dp-cols {
+	display: flex;
+	gap: 32px;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	margin: 18px 0;
+}
+.kr-dp-col-left {
+	flex: 1 1 320px;
+	min-width: 300px;
+}
+.kr-dp-col-right {
+	flex: 1 1 360px;
+	min-width: 300px;
+}
+.kr-dp-cols .kr-dp {
+	margin: 0;
+	max-width: none !important;
+	width: 100%;
+}
+.kr-dp-col-left .woocommerce-order-details,
+.kr-dp-col-left .woocommerce-customer-details {
+	margin-bottom: 24px;
+}
+@media (max-width: 860px) {
+	.kr-dp-cols { display: block; }
+	.kr-dp-col-right { margin-top: 24px; }
+}

@@ -30,8 +30,8 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 	protected $kr_default_accent = '#6d1ed4';
 
 	/**
-	 * Default fixed surcharge (USD) applied when the method is selected.
-	 * '0' disables the fee section defaults. Children set this before
+	 * Default fixed surcharge (store currency) applied when the method is
+	 * selected. '0' disables the fee defaults. Children set this before
 	 * calling parent::__construct() (e.g. '5' for Transferencia/Pago Movil).
 	 *
 	 * @var string
@@ -66,6 +66,18 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
 		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_apply_discount' ) );
 		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_apply_fee' ), 20 );
+	}
+
+	/**
+	 * Persist settings and mirror the chosen UI language into a global option
+	 * so the translation layer (gettext filter) has a single source of truth.
+	 *
+	 * @return bool
+	 */
+	public function process_admin_options() {
+		$saved = parent::process_admin_options();
+		update_option( 'kr_dp_ui_lang', $this->get_option( 'ui_language', 'es' ) );
+		return $saved;
 	}
 
 	/* ====================================================================
@@ -217,20 +229,73 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 				'title' => __( 'Mensajes', 'kr-direct-payments' ),
 				'type'  => 'title',
 			),
+			'render_thankyou'   => array(
+				'title'       => __( 'Formulario en la pagina de gracias', 'kr-direct-payments' ),
+				'type'        => 'select',
+				'default'     => 'show',
+				'options'     => array(
+					'show' => __( 'Mostrar el formulario de este plugin', 'kr-direct-payments' ),
+					'hide' => __( 'Ocultar (usar mi propio bloque / diseno)', 'kr-direct-payments' ),
+				),
+				'description' => __( 'Selecciona "Ocultar" si ya tienes tu propio bloque de verificacion en la pagina (por ejemplo en Elementor) para evitar que aparezca duplicado.', 'kr-direct-payments' ),
+				'desc_tip'    => true,
+			),
+			'thankyou_layout'   => array(
+				'title'       => __( 'Diseno en la pagina de gracias', 'kr-direct-payments' ),
+				'type'        => 'select',
+				'default'     => 'single',
+				'options'     => array(
+					'single' => __( 'Una columna (formulario arriba)', 'kr-direct-payments' ),
+					'beside' => __( 'Dos columnas (formulario al lado del resumen)', 'kr-direct-payments' ),
+				),
+				'description' => __( 'En "Dos columnas" el formulario se coloca junto a los detalles del pedido.', 'kr-direct-payments' ),
+				'desc_tip'    => true,
+			),
 			'instructions'      => array(
 				'title'   => __( 'Instrucciones', 'kr-direct-payments' ),
 				'type'    => 'textarea',
 				'default' => __( 'Realiza el pago con los siguientes datos y luego registra tu comprobante.', 'kr-direct-payments' ),
+			),
+			'header_subtitle'   => array(
+				'title'   => __( 'Subtitulo del encabezado', 'kr-direct-payments' ),
+				'type'    => 'text',
+				'default' => __( 'Envia tu pago para completar tu pedido', 'kr-direct-payments' ),
 			),
 			'verify_title'      => array(
 				'title'   => __( 'Titulo del formulario de verificacion', 'kr-direct-payments' ),
 				'type'    => 'text',
 				'default' => __( 'Completa estos datos para verificar tu pago', 'kr-direct-payments' ),
 			),
+			'memo_note'         => array(
+				'title'       => __( 'Nota bajo el numero de pedido', 'kr-direct-payments' ),
+				'type'        => 'textarea',
+				'default'     => __( 'Incluir tu numero de pedido en la nota nos ayuda a procesar tu pago mas rapido.', 'kr-direct-payments' ),
+			),
+			'next_steps_title'  => array(
+				'title'   => __( 'Titulo "Que pasa despues"', 'kr-direct-payments' ),
+				'type'    => 'text',
+				'default' => __( 'Que pasa despues?', 'kr-direct-payments' ),
+			),
+			'next_steps_text'   => array(
+				'title'       => __( 'Texto "Que pasa despues" (vacio = ocultar)', 'kr-direct-payments' ),
+				'type'        => 'textarea',
+				'default'     => __( 'Una vez recibido tu pago, procesaremos tu pedido y te enviaremos un correo de confirmacion con la informacion de seguimiento.', 'kr-direct-payments' ),
+			),
 			'support_contact'   => array(
 				'title'   => __( 'Contacto de soporte', 'kr-direct-payments' ),
 				'type'    => 'text',
 				'default' => '',
+			),
+			'ui_language'       => array(
+				'title'       => __( 'Idioma / Language', 'kr-direct-payments' ),
+				'type'        => 'select',
+				'default'     => 'es',
+				'options'     => array(
+					'es' => __( 'Spanish (Espanol)', 'kr-direct-payments' ),
+					'en' => __( 'English', 'kr-direct-payments' ),
+				),
+				'description' => __( 'Idioma de los textos que ve el cliente. Aplica a todos los metodos del plugin.', 'kr-direct-payments' ),
+				'desc_tip'    => true,
 			),
 
 			'section_proof'     => array(
@@ -534,31 +599,63 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 			return;
 		}
 
+		// Allow hiding the auto-rendered form (e.g. when a custom Elementor
+		// block or another plugin already shows the verification UI).
+		if ( 'hide' === $this->get_option( 'render_thankyou', 'show' ) ) {
+			return;
+		}
+
 		$scope = '.kr-dp.kr-dp-' . esc_attr( $this->id );
 		$ap    = $this->get_appearance();
 
-		$rows         = array_merge( (array) $this->get_payment_rows( $order ), $this->get_bs_rows( $order ) );
-		$fields       = (array) $this->get_verification_fields();
-		$qr           = $this->get_qr_url();
-		$instructions = wptexturize( wp_kses_post( $this->get_option( 'instructions', '' ) ) );
-		$verify_title = $this->get_option( 'verify_title', __( 'Completa estos datos para verificar tu pago', 'kr-direct-payments' ) );
-		$support      = $this->get_option( 'support_contact', '' );
-		$enable_proof = 'yes' === $this->get_option( 'enable_proof', 'yes' );
+		$rows          = array_merge( (array) $this->get_payment_rows( $order ), $this->get_bs_rows( $order ) );
+		$fields        = (array) $this->get_verification_fields();
+		$qr            = $this->get_qr_url();
+		$instructions  = wptexturize( wp_kses_post( $this->get_option( 'instructions', '' ) ) );
+		$verify_title  = $this->get_option( 'verify_title', __( 'Completa estos datos para verificar tu pago', 'kr-direct-payments' ) );
+		$subtitle      = $this->get_option( 'header_subtitle', __( 'Envia tu pago para completar tu pedido', 'kr-direct-payments' ) );
+		$memo_note     = $this->get_option( 'memo_note', '' );
+		$next_title    = $this->get_option( 'next_steps_title', __( 'Que pasa despues?', 'kr-direct-payments' ) );
+		$next_text     = $this->get_option( 'next_steps_text', '' );
+		$support       = $this->get_option( 'support_contact', '' );
+		$enable_proof  = 'yes' === $this->get_option( 'enable_proof', 'yes' );
 		$require_proof = 'yes' === $this->get_option( 'require_proof', 'no' );
 
-		$already = $order->get_meta( '_kr_dp_verified' );
+		$already   = $order->get_meta( '_kr_dp_verified' );
+		$total     = html_entity_decode( wp_strip_all_tags( $order->get_formatted_order_total() ) );
+		$order_no  = $order->get_order_number();
+		$first     = $order->get_billing_first_name();
+		$title_txt = $this->get_option( 'title', $this->method_title );
 
 		echo '<style>' . $this->css_vars( $scope ) . '</style>';
-		echo '<div class="kr-dp kr-dp-' . esc_attr( $this->id ) . '" style="max-width:var(--krdp-max-width)">';
+		echo '<div class="kr-dp kr-dp-' . esc_attr( $this->id ) . '" data-layout="' . esc_attr( $this->get_option( 'thankyou_layout', 'single' ) ) . '" style="max-width:var(--krdp-max-width)">';
 
 		// Header.
 		echo '<div class="kr-dp-head">';
 		echo '<span class="kr-dp-head-icon">' . wp_kses( $this->resolve_icon_html( 26 ), $this->kr_svg_allowed() ) . '</span>';
-		echo '<span class="kr-dp-head-title">' . esc_html( $this->get_option( 'title', $this->method_title ) ) . '</span>';
+		echo '<span class="kr-dp-head-title">' . esc_html( $title_txt ) . '</span>';
+		echo '<span class="kr-dp-head-hi">' . esc_html( $first ? sprintf( __( 'Ya casi, %s!', 'kr-direct-payments' ), $first ) : __( 'Ya casi!', 'kr-direct-payments' ) ) . '</span>';
+		if ( $subtitle ) {
+			echo '<span class="kr-dp-head-sub">' . esc_html( $subtitle ) . '</span>';
+		}
 		echo '</div>';
 
+		// Steps.
+		echo '<div class="kr-dp-steps">';
+		echo '<span class="kr-dp-dot done">&#10003;</span> ' . esc_html__( 'Pedido realizado', 'kr-direct-payments' );
+		echo '<span class="kr-dp-line"></span>';
+		echo '<span class="kr-dp-dot active">2</span> ' . esc_html__( 'Envia el pago', 'kr-direct-payments' );
+		echo '</div>';
+
+		echo '<div class="kr-dp-body">';
+
+		if ( ! $already ) {
+			echo '<span class="kr-dp-badge">' . esc_html__( 'Accion requerida', 'kr-direct-payments' ) . '</span>';
+		}
+		echo '<div class="kr-dp-amount">' . esc_html( sprintf( __( 'Envia %1$s via %2$s', 'kr-direct-payments' ), $total, $title_txt ) ) . '</div>';
+
 		if ( $instructions ) {
-			echo '<p class="kr-dp-intro">' . wp_kses_post( $instructions ) . '</p>';
+			echo '<div class="kr-dp-intro">' . wp_kses_post( $instructions ) . '</div>';
 		}
 
 		// Payment data rows.
@@ -580,7 +677,18 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 				echo '</span>';
 				echo '</div>';
 			}
+			// Order-number memo row.
+			echo '<div class="kr-dp-row">';
+			echo '<span class="kr-dp-row-label">' . esc_html__( 'Incluye en la nota', 'kr-direct-payments' ) . '</span>';
+			echo '<span class="kr-dp-row-value">#' . esc_html( $order_no );
+			echo ' <button type="button" class="kr-dp-copy" data-copy="' . esc_attr( $order_no ) . '">' . esc_html__( 'Copiar', 'kr-direct-payments' ) . '</button>';
+			echo '</span>';
 			echo '</div>';
+			echo '</div>';
+		}
+
+		if ( $memo_note ) {
+			echo '<p class="kr-dp-memo-note">' . esc_html( $memo_note ) . '</p>';
 		}
 
 		// QR.
@@ -590,43 +698,49 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 
 		if ( $already ) {
 			echo '<div class="kr-dp-done">' . esc_html__( 'Ya recibimos los datos de tu pago. Lo estamos verificando.', 'kr-direct-payments' ) . '</div>';
-			if ( $support ) {
-				echo '<p class="kr-dp-support">' . esc_html__( 'Soporte:', 'kr-direct-payments' ) . ' ' . esc_html( $support ) . '</p>';
+		} else {
+			// Verification form.
+			echo '<h3 class="kr-dp-verify-title">' . esc_html( $verify_title ) . '</h3>';
+			echo '<form class="kr-dp-form" data-order="' . esc_attr( $order_id ) . '" data-key="' . esc_attr( $order->get_order_key() ) . '" data-method="' . esc_attr( $this->id ) . '" enctype="multipart/form-data">';
+			wp_nonce_field( 'kr_dp_submit', 'kr_dp_nonce' );
+
+			foreach ( $fields as $fkey => $f ) {
+				$this->render_verification_field( $fkey, $f );
 			}
-			echo '</div>';
-			return;
-		}
 
-		// Verification form.
-		echo '<h3 class="kr-dp-verify-title">' . esc_html( $verify_title ) . '</h3>';
-		echo '<form class="kr-dp-form" data-order="' . esc_attr( $order_id ) . '" data-key="' . esc_attr( $order->get_order_key() ) . '" data-method="' . esc_attr( $this->id ) . '" enctype="multipart/form-data">';
-		wp_nonce_field( 'kr_dp_submit', 'kr_dp_nonce' );
-
-		foreach ( $fields as $fkey => $f ) {
-			$this->render_verification_field( $fkey, $f );
-		}
-
-		if ( $enable_proof ) {
-			echo '<div class="kr-dp-field">';
-			echo '<label>' . esc_html__( 'Comprobante / captura del pago', 'kr-direct-payments' );
-			if ( $require_proof ) {
-				echo ' <span class="kr-dp-req">*</span>';
+			if ( $enable_proof ) {
+				echo '<div class="kr-dp-field">';
+				echo '<label>' . esc_html__( 'Comprobante / captura del pago', 'kr-direct-payments' );
+				if ( $require_proof ) {
+					echo ' <span class="kr-dp-req">*</span>';
+				}
+				echo '</label>';
+				echo '<input type="file" name="kr_dp_proof" accept="image/png,image/jpeg,image/webp,application/pdf" ' . ( $require_proof ? 'data-required="1"' : '' ) . ' />';
+				echo '<small class="kr-dp-hint">' . esc_html__( 'JPG, PNG, WEBP o PDF. Maximo 5 MB.', 'kr-direct-payments' ) . '</small>';
+				echo '</div>';
 			}
-			echo '</label>';
-			echo '<input type="file" name="kr_dp_proof" accept="image/png,image/jpeg,image/webp,application/pdf" ' . ( $require_proof ? 'data-required="1"' : '' ) . ' />';
-			echo '<small class="kr-dp-hint">' . esc_html__( 'JPG, PNG, WEBP o PDF. Maximo 5 MB.', 'kr-direct-payments' ) . '</small>';
-			echo '</div>';
+
+			echo '<button type="submit" class="kr-dp-submit">' . esc_html__( 'Registrar mi pago', 'kr-direct-payments' ) . '</button>';
+			echo '<div class="kr-dp-msg" role="status"></div>';
+			echo '</form>';
 		}
 
-		echo '<button type="submit" class="kr-dp-submit">' . esc_html__( 'Registrar mi pago', 'kr-direct-payments' ) . '</button>';
-		echo '<div class="kr-dp-msg" role="status"></div>';
-		echo '</form>';
+		// Next steps box.
+		if ( $next_text ) {
+			echo '<div class="kr-dp-next">';
+			if ( $next_title ) {
+				echo '<strong>' . esc_html( $next_title ) . '</strong> ';
+			}
+			echo esc_html( $next_text );
+			echo '</div>';
+		}
 
 		if ( $support ) {
 			echo '<p class="kr-dp-support">' . esc_html__( 'Soporte:', 'kr-direct-payments' ) . ' ' . esc_html( $support ) . '</p>';
 		}
 
-		echo '</div>';
+		echo '</div>'; // .kr-dp-body
+		echo '</div>'; // .kr-dp
 	}
 
 	/**

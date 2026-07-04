@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,10 +42,16 @@ Compatibilidad:
 Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
 
 == Changelog ==
-= 1.1.0 =
+= 2.2.0 =
 * Recargo fijo configurable por metodo de pago (activado por defecto con $5 en Transferencia Bancaria y Pago Movil). Se recalcula en vivo en el checkout clasico y en Checkout Blocks.
 * Total a pagar en Bs. segun la tasa oficial publicada por el BCV (bcv.org.ve): euro del dia por defecto, dolar opcional. Cache de 3 horas con respaldo de la ultima tasa conocida.
 * La tasa y el monto en Bs. se guardan en el pedido al comprar y se muestran en el checkout, pedido recibido, correos y pantalla de pedido del admin.
+
+= 2.0.0 =
+* Unificado: ahora incluye Zelle ademas de Transferencia Bancaria, Pago Movil y Binance (un solo plugin, sin conflictos).
+* Pagina de gracias rediseñada (stepper, monto destacado, nota del pedido, "que pasa despues") para todos los metodos.
+* Comprobante/captura y "Nombre de quien envia" disponibles en todos los metodos.
+* Selector de idioma (Espanol por defecto / English) y acentos correctos en espanol.
 
 = 1.0.0 =
 * Version inicial unificada: Zelle + Transferencia Bancaria + Pago Movil + Binance.
