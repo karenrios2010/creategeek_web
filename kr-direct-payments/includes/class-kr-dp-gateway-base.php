@@ -72,24 +72,63 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Persist settings and mirror the chosen UI language into a global option
-	 * so the translation layer (gettext filter) has a single source of truth.
+	 * Settings shared by every method of the plugin, stored as ONE global
+	 * option: key => array( option_name, default ). Reading them via
+	 * get_option() below means each gateway form always shows the current
+	 * global value, so saving one method never resets what se configuro
+	 * en otro.
+	 *
+	 * @return array
+	 */
+	protected function kr_global_option_map() {
+		return array(
+			'ui_language'       => array( 'kr_dp_ui_lang', 'es' ),
+			'bcv_cache_minutes' => array( 'kr_dp_bcv_cache_minutes', '30' ),
+			'shopify_checkout'  => array( 'kr_dp_shopify_checkout', 'no' ),
+		);
+	}
+
+	/**
+	 * Route the shared keys to their global option; everything else keeps
+	 * the per-gateway behaviour.
+	 *
+	 * @param string $key         Option key.
+	 * @param mixed  $empty_value Default when empty.
+	 * @return mixed
+	 */
+	public function get_option( $key, $empty_value = null ) {
+		$map = $this->kr_global_option_map();
+		if ( isset( $map[ $key ] ) ) {
+			$value = get_option( $map[ $key ][0], '' );
+			return ( '' === $value || false === $value || null === $value ) ? $map[ $key ][1] : $value;
+		}
+		return parent::get_option( $key, $empty_value );
+	}
+
+	/**
+	 * Persist settings and mirror the shared keys into their global options.
 	 *
 	 * @return bool
 	 */
 	public function process_admin_options() {
 		$saved = parent::process_admin_options();
-		update_option( 'kr_dp_ui_lang', $this->get_option( 'ui_language', 'es' ) );
 
-		// Mirror the BCV refresh interval globally and re-arm the cron so
-		// the new frequency takes effect immediately.
-		$minutes = (int) $this->get_option( 'bcv_cache_minutes', 30 );
-		$minutes = max( 5, min( 1440, $minutes ? $minutes : 30 ) );
-		if ( (int) get_option( 'kr_dp_bcv_cache_minutes', 30 ) !== $minutes ) {
-			update_option( 'kr_dp_bcv_cache_minutes', $minutes );
-			if ( function_exists( 'kr_dp_bcv_reschedule' ) ) {
-				kr_dp_bcv_reschedule();
+		foreach ( $this->kr_global_option_map() as $key => $conf ) {
+			if ( ! isset( $this->settings[ $key ] ) || '' === $this->settings[ $key ] ) {
+				continue;
 			}
+			$value = $this->settings[ $key ];
+
+			if ( 'bcv_cache_minutes' === $key ) {
+				$value = (string) max( 5, min( 1440, (int) $value ? (int) $value : 30 ) );
+				// Re-arma el cron si cambio el intervalo.
+				if ( get_option( $conf[0], $conf[1] ) !== $value && function_exists( 'kr_dp_bcv_reschedule' ) ) {
+					update_option( $conf[0], $value );
+					kr_dp_bcv_reschedule();
+					continue;
+				}
+			}
+			update_option( $conf[0], $value );
 		}
 		return $saved;
 	}
@@ -437,6 +476,18 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 				'description'       => __( 'Solo se usa si no se puede obtener la tasa automatica del BCV (por ejemplo, si tu hosting bloquea bcv.org.ve). Deja 0 o vacio para usar unicamente la automatica.', 'kr-direct-payments' ),
 				'default'           => '0',
 				'desc_tip'          => true,
+			),
+
+			'section_checkout'  => array(
+				'title'       => __( 'Experiencia de checkout', 'kr-direct-payments' ),
+				'type'        => 'title',
+				'description' => __( 'Reemplaza la pagina de pago por un diseno a pantalla completa estilo Shopify: logo arriba, formulario a la izquierda y resumen del pedido fijo a la derecha. No requiere plugins adicionales y es un ajuste global (aplica a toda la tienda). Desmarca para volver al checkout normal del tema.', 'kr-direct-payments' ),
+			),
+			'shopify_checkout'  => array(
+				'title'   => __( 'Checkout estilo Shopify', 'kr-direct-payments' ),
+				'type'    => 'checkbox',
+				'label'   => __( 'Activar el checkout a pantalla completa de dos columnas', 'kr-direct-payments' ),
+				'default' => 'no',
 			),
 		);
 	}
