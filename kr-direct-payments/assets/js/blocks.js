@@ -68,7 +68,12 @@
 			return createElement(
 				'span',
 				{ style: { display: 'flex', alignItems: 'center', gap: '8px' } },
-				data.icon ? createElement( 'img', { src: data.icon, alt: '', style: { height: '24px', width: 'auto' } } ) : null,
+				data.icon ? createElement( 'img', {
+					src: data.icon,
+					alt: '',
+					style: { height: '24px', width: 'auto' },
+					onError: function ( e ) { e.target.style.display = 'none'; }
+				} ) : null,
 				createElement( 'span', null, title )
 			);
 		};

@@ -64,8 +64,11 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
 		add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
-		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_apply_discount' ) );
-		add_action( 'woocommerce_cart_calculate_fees', array( $this, 'maybe_apply_fee' ), 20 );
+		// Nota: el recargo y el descuento NO se enganchan aqui. WooCommerce
+		// puede construir las pasarelas DESPUES de calcular los totales, por
+		// lo que un hook registrado en el constructor llega tarde. El hook
+		// global kr_dp_apply_gateway_adjustments() (plugin principal) carga
+		// las pasarelas a tiempo y llama maybe_apply_fee/discount.
 	}
 
 	/**
@@ -641,6 +644,22 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 			}
 		}
 		return 'data:image/svg+xml;base64,' . base64_encode( $this->get_brand_icon_html( 24 ) );
+	}
+
+	/**
+	 * Icon HTML for the classic checkout. Overrides WooCommerce's default
+	 * so a broken/deleted custom logo hides itself instead of showing the
+	 * browser's broken-image placeholder.
+	 *
+	 * @return string
+	 */
+	public function get_icon() {
+		$icon = $this->get_brand_icon_url();
+		$html = '';
+		if ( $icon ) {
+			$html = '<img src="' . esc_attr( $icon ) . '" alt="' . esc_attr( $this->get_title() ) . '" style="max-height:24px;width:auto;vertical-align:middle" onerror="this.style.display=&#039;none&#039;" />';
+		}
+		return apply_filters( 'woocommerce_gateway_icon', $html, $this->id );
 	}
 
 	/* ====================================================================

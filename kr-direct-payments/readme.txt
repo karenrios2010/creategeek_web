@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.6.0
+Stable tag: 2.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ Compatibilidad:
 Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
 
 == Changelog ==
+= 2.7.0 =
+* Corregido: el recargo fijo no se sumaba en el checkout clasico. El hook se registraba en el constructor de cada pasarela y WooCommerce puede construirlas despues de calcular los totales; ahora es un hook global que carga las pasarelas a tiempo (aplica a recargo y descuento, en Pago Movil, Transferencia y todos los metodos).
+* Corregido: logo roto en el checkout (ej. Zelle). Si la imagen del logo no carga, se oculta sola en vez de mostrar el icono roto del navegador (checkout clasico y Blocks).
+
 = 2.6.0 =
 * Las fuentes ahora se COMBINAN: si una solo entrega USD (dolarapi), se sigue buscando la tasa EUR en las demas en vez de detenerse.
 * Nueva fuente de ultimo recurso open.er-api.com (EUR y USD oficiales aproximados) para garantizar que la tasa euro siempre este disponible.
