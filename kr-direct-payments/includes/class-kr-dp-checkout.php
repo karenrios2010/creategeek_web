@@ -32,7 +32,7 @@ class KR_DP_Checkout {
 		add_filter( 'template_include', array( __CLASS__, 'template' ), 99 );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'assets' ), 20 );
 		add_action( 'wp', array( __CLASS__, 'relocate_payment' ) );
-		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'item_thumbnail' ), 10, 3 );
+		add_filter( 'woocommerce_cart_item_name', array( __CLASS__, 'item_thumbnail' ), 50, 3 );
 		add_filter( 'woocommerce_checkout_fields', array( __CLASS__, 'field_tweaks' ), 20 );
 	}
 
@@ -80,6 +80,11 @@ class KR_DP_Checkout {
 			return;
 		}
 		wp_enqueue_style( 'kr-dp-checkout-shopify', KR_DP_PLUGIN_URL . 'assets/css/checkout-shopify.css', array(), KR_DP_VERSION );
+
+		// Acordeon del resumen en movil (como el "Order summary" de Shopify).
+		$js = '(function(){var h=document.getElementById("order_review_heading"),r=document.getElementById("order_review");if(!h||!r)return;'
+			. 'h.addEventListener("click",function(){if(window.innerWidth<1000){r.classList.toggle("krsc-collapsed");h.classList.toggle("krsc-collapsed");}});})();';
+		wp_add_inline_script( 'kr-dp-checkout', $js );
 	}
 
 	/**
@@ -94,6 +99,10 @@ class KR_DP_Checkout {
 		}
 		remove_action( 'woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20 );
 		add_action( 'woocommerce_checkout_after_customer_details', 'woocommerce_checkout_payment', 20 );
+
+		// Shopify no muestra la barra de cupon en el checkout (los cupones
+		// se aplican en el carrito).
+		remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
 	}
 
 	/**
@@ -112,6 +121,10 @@ class KR_DP_Checkout {
 		if ( empty( $cart_item['data'] ) || ! is_object( $cart_item['data'] ) ) {
 			return $name;
 		}
+		// Algunos temas ya inyectan su propia miniatura en el nombre;
+		// se elimina para no duplicar la imagen.
+		$name = preg_replace( '/<img[^>]*>/i', '', $name );
+
 		$thumb = $cart_item['data']->get_image( 'woocommerce_thumbnail' );
 		$qty   = isset( $cart_item['quantity'] ) ? (int) $cart_item['quantity'] : 1;
 

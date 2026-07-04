@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.8.0
+Stable tag: 2.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,13 @@ Compatibilidad:
 Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
 
 == Changelog ==
+= 2.8.1 =
+* Checkout Shopify afinado: logo pequeno con tope duro (40px escritorio / 32px movil), header con borde inferior, icono de bolsa que vuelve al carrito y enlace "Iniciar sesion" para invitados.
+* Se elimina la barra de cupon del checkout (los cupones se siguen aplicando en el carrito, como en Shopify).
+* Labels flotantes dentro de los campos cuando tienen contenido (estilo Shopify, con accesibilidad preservada).
+* Sin duplicados: se elimina la miniatura que algunos temas inyectan en el nombre del producto y la linea extra de la comision (la tabla estandar ya la muestra en esta plantilla).
+* Tipografia heredada del tema y resumen plegable en movil.
+
 = 2.8.0 =
 * Nuevo: checkout a pantalla completa estilo Shopify, sin plugins adicionales. Se activa con un checkbox en los ajustes de cualquier metodo (seccion "Experiencia de checkout"): logo arriba, formulario a la izquierda, resumen del pedido gris y fijo a la derecha con miniaturas de producto y globito de cantidad, pago bajo los datos del cliente. Usa el checkout nativo de WooCommerce por debajo (recargo, Bs y verificacion funcionan igual) y se puede desactivar en un clic.
 * Los ajustes compartidos (idioma, intervalo BCV, estilo de checkout) ahora se guardan como opcion global real: guardar un metodo ya no resetea lo configurado en otro.

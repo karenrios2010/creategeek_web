@@ -25,6 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="krsc-page">
 
 	<header class="krsc-header">
+		<span class="krsc-header-spacer" aria-hidden="true"></span>
 		<a class="krsc-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
 			<?php
 			if ( function_exists( 'has_custom_logo' ) && has_custom_logo() ) {
@@ -34,6 +35,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			?>
 		</a>
+		<span class="krsc-header-actions">
+			<?php if ( ! is_user_logged_in() && function_exists( 'wc_get_page_permalink' ) ) : ?>
+				<a class="krsc-signin" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><?php esc_html_e( 'Iniciar sesion', 'kr-direct-payments' ); ?></a>
+			<?php endif; ?>
+			<?php if ( function_exists( 'wc_get_cart_url' ) ) : ?>
+				<a class="krsc-bag" href="<?php echo esc_url( wc_get_cart_url() ); ?>" aria-label="<?php esc_attr_e( 'Volver al carrito', 'kr-direct-payments' ); ?>">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1.2 12.2a1.8 1.8 0 0 1-1.8 1.6H9a1.8 1.8 0 0 1-1.8-1.6Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
+				</a>
+			<?php endif; ?>
+		</span>
 	</header>
 
 	<main class="krsc-main">

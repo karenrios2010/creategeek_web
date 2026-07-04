@@ -15,11 +15,12 @@
 
 html { background: #fff; }
 
+/* La tipografia se HEREDA del tema (sus hojas de estilo cargan via
+   wp_head); aqui solo se fijan tamano base y color. */
 body.krsc-body {
 	margin: 0;
 	color: var(--krsc-ink);
 	background: #fff;
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	font-size: 15px;
 	line-height: 1.5;
 }
@@ -41,17 +42,46 @@ body.krsc-body {
 
 .krsc-page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-/* ---------- Header ---------- */
+/* ---------- Header (logo centrado pequeno, bolsa a la derecha) ---------- */
 .krsc-header {
-	max-width: var(--krsc-max);
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
 	width: 100%;
-	margin: 0 auto;
-	padding: 22px 24px;
+	margin: 0;
+	padding: 14px 24px;
 	box-sizing: border-box;
+	border-bottom: 1px solid var(--krsc-line);
+	background: #fff;
+	position: relative;
+	z-index: 2;
 }
-.krsc-logo { display: inline-block; text-decoration: none; }
-.krsc-logo img { max-height: 52px; width: auto; display: block; }
-.krsc-logo-text { font-size: 24px; font-weight: 700; letter-spacing: 0.04em; color: var(--krsc-ink); }
+.krsc-logo { grid-column: 2; display: inline-flex; align-items: center; text-decoration: none; }
+.krsc-logo img,
+.krsc-logo svg,
+.krsc-logo .custom-logo {
+	max-height: 40px !important;
+	max-width: 220px !important;
+	width: auto !important;
+	height: auto !important;
+	display: block;
+}
+.krsc-logo-text { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; color: var(--krsc-ink); }
+
+.krsc-header-actions {
+	grid-column: 3;
+	justify-self: end;
+	display: inline-flex;
+	align-items: center;
+	gap: 18px;
+}
+.krsc-signin { font-size: 13.5px; color: var(--krsc-ink); text-decoration: underline; text-underline-offset: 3px; }
+.krsc-bag { color: var(--krsc-ink); display: inline-flex; }
+.krsc-bag:hover, .krsc-signin:hover { opacity: .7; }
+
+@media ( max-width: 999px ) {
+	.krsc-logo img, .krsc-logo svg, .krsc-logo .custom-logo { max-height: 32px !important; }
+}
 
 /* ---------- Layout principal ---------- */
 .krsc-main {
@@ -95,12 +125,34 @@ body.krsc-body {
 	margin: 26px 0 12px;
 }
 
-.krsc-main form .form-row { padding: 0; margin: 0 0 12px; }
+.krsc-main form .form-row { padding: 0; margin: 0 0 12px; position: relative; }
 .krsc-main form .form-row label { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .krsc-main form .form-row label.checkbox,
 .krsc-main form .form-row label.woocommerce-form__label-for-checkbox {
 	position: static !important; width: auto; height: auto; overflow: visible; clip: auto;
 	display: inline-flex; gap: 8px; align-items: center;
+}
+
+/* Labels flotantes estilo Shopify: cuando el campo tiene contenido, la
+   etiqueta aparece pequena dentro del campo (navegadores con :has). */
+@supports selector( :has(*) ) {
+	.krsc-main form .form-row:has( .input-text:not(:placeholder-shown) ) > label:not(.checkbox):not(.woocommerce-form__label-for-checkbox),
+	.krsc-main form .form-row:has( select ) > label:not(.checkbox):not(.woocommerce-form__label-for-checkbox) {
+		position: absolute !important;
+		width: auto; height: auto; overflow: visible; clip: auto;
+		top: 6px; left: 15px;
+		font-size: 11px;
+		line-height: 1.2;
+		color: var(--krsc-muted);
+		z-index: 2;
+		pointer-events: none;
+	}
+	.krsc-main form .form-row:has( .input-text:not(:placeholder-shown) ) .input-text,
+	.krsc-main form .form-row:has( select ) select {
+		padding-top: 21px;
+		padding-bottom: 5px;
+	}
+	.krsc-main form .form-row label .required { display: none; }
 }
 
 .krsc-main .input-text,
@@ -196,9 +248,10 @@ body.krsc-body {
 .krsc-item-name { flex: 1; min-width: 0; }
 .krsc-main .product-quantity { display: none; } /* la cantidad ya va en el globito */
 
-/* Filas del plugin: recargo y total en Bs */
-.krsc-main tr.kr-dp-fee-detail th,
-.krsc-main tr.kr-dp-fee-detail td { color: var(--krsc-muted); font-size: 13.5px; }
+/* Filas del plugin: recargo y total en Bs.
+   La tabla estandar YA muestra la linea de la comision en esta plantilla,
+   asi que la fila de detalle extra se oculta para no duplicarla. */
+.krsc-main tr.kr-dp-fee-detail { display: none; }
 .krsc-main tr.kr-dp-bs-total th,
 .krsc-main tr.kr-dp-bs-total td {
 	border-top: 1px dashed var(--krsc-line);
@@ -292,15 +345,32 @@ body.krsc-body {
 }
 .krsc-footer a { color: var(--krsc-muted); }
 
-/* ---------- Movil: una columna, resumen arriba ---------- */
+/* ---------- Movil: una columna, resumen plegable arriba ---------- */
 @media ( max-width: 999px ) {
 	.krsc-main form.checkout { display: flex; flex-direction: column; }
 	.krsc-main form.checkout #order_review { order: -1; }
 	.krsc-main form.checkout #order_review_heading {
 		order: -2;
-		font-size: 17px;
+		font-size: 15px;
+		font-weight: 600;
 		margin: 0 0 10px;
+		padding: 14px 16px;
+		background: var(--krsc-gray);
+		border: 1px solid #e8e8e6;
+		border-radius: 12px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
+	.krsc-main form.checkout #order_review_heading::after {
+		content: "\25BE"; /* triangulo */
+		font-size: 12px;
+		transform: rotate(180deg); /* abierto por defecto */
+		transition: transform .15s;
+	}
+	.krsc-main form.checkout #order_review_heading.krsc-collapsed::after { transform: rotate(0deg); }
+	.krsc-main form.checkout #order_review.krsc-collapsed { display: none; }
 	.krsc-main .form-row-first,
 	.krsc-main .form-row-last { width: 100%; margin-right: 0; display: block; }
 }
