@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="krsc-page">
 
 	<header class="krsc-header">
-		<span class="krsc-header-spacer" aria-hidden="true"></span>
+		<div class="krsc-header-inner">
 		<a class="krsc-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
 			<?php
 			// No usar the_custom_logo(): genera su propio <a> y anidar
@@ -49,6 +49,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</a>
 			<?php endif; ?>
 		</span>
+		</div>
 	</header>
 
 	<main class="krsc-main">

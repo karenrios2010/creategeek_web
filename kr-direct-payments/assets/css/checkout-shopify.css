@@ -42,22 +42,26 @@ body.krsc-body {
 
 .krsc-page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-/* ---------- Header (logo centrado pequeno, bolsa a la derecha) ---------- */
+/* ---------- Header (logo a la izquierda, bolsa a la derecha) ---------- */
 .krsc-header {
-	display: grid;
-	grid-template-columns: 1fr auto 1fr;
-	align-items: center;
 	width: 100%;
 	margin: 0;
-	padding: 14px 24px;
-	box-sizing: border-box;
 	border-bottom: 1px solid var(--krsc-line);
 	background: #fff;
 	position: relative;
 	z-index: 2;
 }
-.krsc-header-spacer { grid-column: 1; }
-.krsc-logo { grid-column: 2; justify-self: center; display: inline-flex; align-items: center; text-decoration: none; }
+.krsc-header-inner {
+	max-width: var(--krsc-max);
+	margin: 0 auto;
+	padding: 14px 24px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+.krsc-logo { display: inline-flex; align-items: center; text-decoration: none; }
 .krsc-logo img,
 .krsc-logo svg {
 	max-height: 40px !important;
@@ -70,8 +74,6 @@ body.krsc-body {
 .krsc-logo-text { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; color: var(--krsc-ink); }
 
 .krsc-header-actions {
-	grid-column: 3;
-	justify-self: end;
 	display: inline-flex;
 	align-items: center;
 	gap: 18px;
@@ -376,6 +378,10 @@ body.krsc-body {
 	.krsc-main .form-row-last { width: 100%; margin-right: 0; display: block; }
 }
 
-/* Oculta elementos de tema que pudieran colarse via wp_head/wp_footer */
+/* Oculta elementos de tema/WordPress que pudieran colarse.
+   El margen de 32px lo agrega WP para la barra de admin cuando hay
+   sesion iniciada; aqui la barra esta oculta, asi que el margen sobra. */
 .krsc-body #wpadminbar { display: none !important; }
-.krsc-body { padding-top: 0 !important; }
+.krsc-body { padding-top: 0 !important; margin-top: 0 !important; }
+html { margin-top: 0 !important; }
+html #wpadminbar { display: none !important; }

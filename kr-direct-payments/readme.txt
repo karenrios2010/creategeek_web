@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.8.2
+Stable tag: 2.8.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
