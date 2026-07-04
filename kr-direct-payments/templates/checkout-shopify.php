@@ -28,8 +28,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<span class="krsc-header-spacer" aria-hidden="true"></span>
 		<a class="krsc-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
 			<?php
-			if ( function_exists( 'has_custom_logo' ) && has_custom_logo() ) {
-				the_custom_logo();
+			// No usar the_custom_logo(): genera su propio <a> y anidar
+			// enlaces rompe el HTML (el logo queda fuera del header).
+			$krsc_logo_id  = (int) get_theme_mod( 'custom_logo' );
+			$krsc_logo_src = $krsc_logo_id ? wp_get_attachment_image_src( $krsc_logo_id, 'full' ) : false;
+			if ( $krsc_logo_src && ! empty( $krsc_logo_src[0] ) ) {
+				echo '<img src="' . esc_url( $krsc_logo_src[0] ) . '" alt="' . esc_attr( get_bloginfo( 'name' ) ) . '" />';
 			} else {
 				echo '<span class="krsc-logo-text">' . esc_html( get_bloginfo( 'name' ) ) . '</span>';
 			}
@@ -41,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php endif; ?>
 			<?php if ( function_exists( 'wc_get_cart_url' ) ) : ?>
 				<a class="krsc-bag" href="<?php echo esc_url( wc_get_cart_url() ); ?>" aria-label="<?php esc_attr_e( 'Volver al carrito', 'kr-direct-payments' ); ?>">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1.2 12.2a1.8 1.8 0 0 1-1.8 1.6H9a1.8 1.8 0 0 1-1.8-1.6Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5h13l-1 11.1a1.6 1.6 0 0 1-1.6 1.4H8.1a1.6 1.6 0 0 1-1.6-1.4Z"/><path d="M8.5 8.5V7a3.5 3.5 0 0 1 7 0v1.5"/></svg>
 				</a>
 			<?php endif; ?>
 		</span>

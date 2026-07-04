@@ -56,15 +56,16 @@ body.krsc-body {
 	position: relative;
 	z-index: 2;
 }
-.krsc-logo { grid-column: 2; display: inline-flex; align-items: center; text-decoration: none; }
+.krsc-header-spacer { grid-column: 1; }
+.krsc-logo { grid-column: 2; justify-self: center; display: inline-flex; align-items: center; text-decoration: none; }
 .krsc-logo img,
-.krsc-logo svg,
-.krsc-logo .custom-logo {
+.krsc-logo svg {
 	max-height: 40px !important;
 	max-width: 220px !important;
 	width: auto !important;
 	height: auto !important;
 	display: block;
+	object-fit: contain;
 }
 .krsc-logo-text { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; color: var(--krsc-ink); }
 

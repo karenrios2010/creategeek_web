@@ -2,7 +2,7 @@
 /**
  * Plugin Name: KR Direct Payments
  * Description: Metodos de pago manuales para WooCommerce (Zelle, Transferencia Bancaria, Pago Movil y Binance) con apariencia configurable, formulario de verificacion, carga de comprobante, recargo fijo por metodo y total en Bs. segun la tasa BCV. Compatible con HPOS y Checkout Blocks.
- * Version: 2.8.1
+ * Version: 2.8.2
  * Author: Karen Rios
  * Requires PHP: 7.4
  * Requires at least: 5.8
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'KR_DP_VERSION', '2.8.1' );
+define( 'KR_DP_VERSION', '2.8.2' );
 define( 'KR_DP_PLUGIN_FILE', __FILE__ );
 define( 'KR_DP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KR_DP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
