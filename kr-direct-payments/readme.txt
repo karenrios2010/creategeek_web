@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.3.0
+Stable tag: 2.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ Compatibilidad:
 Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
 
 == Changelog ==
+= 2.4.0 =
+* Indicador de estado de la conexion BCV en la seccion de ajustes (muestra la tasa EUR/USD actual y fecha, o el error si el servidor no puede alcanzar bcv.org.ve).
+* Nueva "Tasa manual de respaldo": se usa automaticamente si la tasa del BCV no esta disponible (hosting que bloquea conexiones salientes, BCV caido en instalacion nueva).
+
 = 2.3.0 =
 * La tasa BCV ahora se actualiza en segundo plano con WP-Cron: el checkout nunca espera por bcv.org.ve (responde siempre con la tasa guardada).
 * Frecuencia de actualizacion configurable desde el admin (por defecto cada 30 minutos, minimo 5), antes fija en 3 horas.

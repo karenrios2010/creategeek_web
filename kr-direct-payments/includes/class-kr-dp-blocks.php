@@ -96,7 +96,7 @@ final class KR_DP_Blocks_Support extends AbstractPaymentMethodType {
 		// Conversion a Bs. segun la tasa BCV.
 		$show_bs   = $gateway && 'yes' === $gateway->get_option( 'show_bs', 'no' );
 		$source    = $gateway ? $gateway->get_option( 'bcv_source', 'euro' ) : 'euro';
-		$rate      = $show_bs ? KR_DP_BCV::get_rate( $source ) : 0.0;
+		$rate      = ( $show_bs && method_exists( $gateway, 'get_bcv_rate' ) ) ? $gateway->get_bcv_rate() : 0.0;
 		$src_label = ( 'dolar' === $source ) ? 'USD' : 'EUR';
 
 		return array(

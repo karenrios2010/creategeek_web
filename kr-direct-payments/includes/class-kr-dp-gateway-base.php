@@ -399,7 +399,7 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 			'section_bcv'       => array(
 				'title'       => __( 'Conversion a Bolivares (tasa BCV)', 'kr-direct-payments' ),
 				'type'        => 'title',
-				'description' => __( 'Muestra el total a pagar en Bs. usando la tasa oficial publicada por el Banco Central de Venezuela (bcv.org.ve). La tasa se cachea 3 horas y se guarda en el pedido al momento de la compra.', 'kr-direct-payments' ),
+				'description' => __( 'Muestra el total a pagar en Bs. usando la tasa oficial publicada por el Banco Central de Venezuela (bcv.org.ve). La tasa se actualiza en segundo plano y se guarda en el pedido al momento de la compra.', 'kr-direct-payments' ) . $this->kr_bcv_status_html(),
 			),
 			'show_bs'           => array(
 				'title'   => __( 'Mostrar total en Bs.', 'kr-direct-payments' ),
@@ -428,7 +428,54 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 					'step' => '5',
 				),
 			),
+			'bcv_manual_rate'   => array(
+				'title'             => __( 'Tasa manual de respaldo (Bs)', 'kr-direct-payments' ),
+				'type'              => 'text',
+				'description'       => __( 'Solo se usa si no se puede obtener la tasa automatica del BCV (por ejemplo, si tu hosting bloquea bcv.org.ve). Deja 0 o vacio para usar unicamente la automatica.', 'kr-direct-payments' ),
+				'default'           => '0',
+				'desc_tip'          => true,
+			),
 		);
+	}
+
+	/**
+	 * Live status of the BCV connection, appended to the settings section
+	 * (admin only) so connectivity issues are visible at a glance.
+	 *
+	 * @return string
+	 */
+	protected function kr_bcv_status_html() {
+		if ( ! is_admin() || ! class_exists( 'KR_DP_BCV' ) ) {
+			return '';
+		}
+		$rates = KR_DP_BCV::get_rates();
+		if ( ! empty( $rates['euro'] ) || ! empty( $rates['dolar'] ) ) {
+			$parts = array();
+			if ( ! empty( $rates['euro'] ) ) {
+				$parts[] = 'EUR = ' . kr_dp_format_bs( $rates['euro'] );
+			}
+			if ( ! empty( $rates['dolar'] ) ) {
+				$parts[] = 'USD = ' . kr_dp_format_bs( $rates['dolar'] );
+			}
+			$date = ! empty( $rates['date'] ) ? $rates['date'] : '';
+			return '<br /><span style="color:#1aa06d;font-weight:600">&#10003; ' . esc_html__( 'Conexion BCV OK.', 'kr-direct-payments' ) . '</span> ' . esc_html( implode( ' | ', $parts ) ) . ( $date ? ' <em>(' . esc_html__( 'obtenida:', 'kr-direct-payments' ) . ' ' . esc_html( $date ) . ')</em>' : '' );
+		}
+		return '<br /><span style="color:#d63638;font-weight:600">&#10007; ' . esc_html__( 'No se ha podido obtener la tasa del BCV desde este servidor.', 'kr-direct-payments' ) . '</span> ' . esc_html__( 'Revisa que tu hosting permita conexiones salientes a bcv.org.ve, o define una tasa manual de respaldo abajo.', 'kr-direct-payments' );
+	}
+
+	/**
+	 * Effective BCV rate for this gateway: automatic (BCV) with the manual
+	 * fallback when the automatic one is unavailable.
+	 *
+	 * @return float 0 when no rate is available at all.
+	 */
+	public function get_bcv_rate() {
+		$rate = KR_DP_BCV::get_rate( $this->get_option( 'bcv_source', 'euro' ) );
+		if ( $rate <= 0 ) {
+			$manual = str_replace( ',', '.', (string) $this->get_option( 'bcv_manual_rate', '0' ) );
+			$rate   = (float) $manual;
+		}
+		return $rate > 0 ? $rate : 0.0;
 	}
 
 	/* ====================================================================
@@ -929,7 +976,7 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		$total_bs = (float) $order->get_meta( '_kr_dp_total_bs' );
 
 		if ( $rate <= 0 ) {
-			$rate     = KR_DP_BCV::get_rate( $source );
+			$rate     = $this->get_bcv_rate();
 			$total_bs = $rate > 0 ? (float) $order->get_total() * $rate : 0;
 		}
 		if ( $rate <= 0 || $total_bs <= 0 ) {
@@ -967,7 +1014,7 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		// Congela la tasa BCV y el total en Bs al momento de la compra.
 		if ( 'yes' === $this->get_option( 'show_bs', 'no' ) ) {
 			$source = $this->get_option( 'bcv_source', 'euro' );
-			$rate   = KR_DP_BCV::get_rate( $source );
+			$rate   = $this->get_bcv_rate();
 			if ( $rate > 0 ) {
 				$order->update_meta_data( '_kr_dp_bcv_rate', wc_format_decimal( $rate, 8 ) );
 				$order->update_meta_data( '_kr_dp_bcv_source', $source );
