@@ -450,12 +450,14 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		}
 		$rates = KR_DP_BCV::check_now();
 		if ( ! empty( $rates['euro'] ) || ! empty( $rates['dolar'] ) ) {
+			// Precision completa (8 decimales, como publica el BCV) para
+			// poder comparar 1:1 con el widget oficial.
 			$parts = array();
 			if ( ! empty( $rates['euro'] ) ) {
-				$parts[] = 'EUR = ' . kr_dp_format_bs( $rates['euro'] );
+				$parts[] = 'EUR = Bs. ' . number_format( (float) $rates['euro'], 8, ',', '.' );
 			}
 			if ( ! empty( $rates['dolar'] ) ) {
-				$parts[] = 'USD = ' . kr_dp_format_bs( $rates['dolar'] );
+				$parts[] = 'USD = Bs. ' . number_format( (float) $rates['dolar'], 8, ',', '.' );
 			}
 			$date    = ! empty( $rates['date'] ) ? $rates['date'] : '';
 			$sources = array(
