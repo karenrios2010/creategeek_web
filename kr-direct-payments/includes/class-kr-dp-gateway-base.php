@@ -718,7 +718,7 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		$scope = '.kr-dp.kr-dp-' . esc_attr( $this->id );
 		$ap    = $this->get_appearance();
 
-		$rows          = array_merge( (array) $this->get_payment_rows( $order ), $this->get_bs_rows( $order ) );
+		$rows          = array_merge( (array) $this->get_payment_rows( $order ), $this->get_fee_rows( $order ), $this->get_bs_rows( $order ) );
 		$fields        = (array) $this->get_verification_fields();
 		$qr            = $this->get_qr_url();
 		$instructions  = wptexturize( wp_kses_post( $this->get_option( 'instructions', '' ) ) );
@@ -924,7 +924,7 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 		if ( $instructions ) {
 			echo wp_kses_post( wpautop( wptexturize( $instructions ) ) );
 		}
-		$rows = array_merge( (array) $this->get_payment_rows( $order ), $this->get_bs_rows( $order ) );
+		$rows = array_merge( (array) $this->get_payment_rows( $order ), $this->get_fee_rows( $order ), $this->get_bs_rows( $order ) );
 		if ( $rows ) {
 			echo '<ul>';
 			foreach ( $rows as $row ) {
@@ -993,6 +993,30 @@ abstract class KR_DP_Gateway_Base extends WC_Payment_Gateway {
 			$label = sprintf( __( 'Comision %s', 'kr-direct-payments' ), $this->get_option( 'title', $this->method_title ) );
 		}
 		$cart->add_fee( $label, $amount, false );
+	}
+
+	/**
+	 * Detail rows for the fees saved on the order (surcharge/discount), so
+	 * the buyer sees the breakdown in the payment card and emails even when
+	 * the theme's totals template hides fee lines.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return array Same shape as get_payment_rows().
+	 */
+	public function get_fee_rows( $order ) {
+		$rows = array();
+		foreach ( $order->get_fees() as $fee ) {
+			$amount = (float) $fee->get_total();
+			if ( 0.0 === $amount ) {
+				continue;
+			}
+			$rows[] = array(
+				'label' => $fee->get_name(),
+				'value' => html_entity_decode( wp_strip_all_tags( wc_price( $amount, array( 'currency' => $order->get_currency() ) ) ) ),
+				'copy'  => false,
+			);
+		}
+		return $rows;
 	}
 
 	/* ====================================================================

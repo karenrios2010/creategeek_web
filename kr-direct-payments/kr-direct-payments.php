@@ -2,7 +2,7 @@
 /**
  * Plugin Name: KR Direct Payments
  * Description: Metodos de pago manuales para WooCommerce (Zelle, Transferencia Bancaria, Pago Movil y Binance) con apariencia configurable, formulario de verificacion, carga de comprobante, recargo fijo por metodo y total en Bs. segun la tasa BCV. Compatible con HPOS y Checkout Blocks.
- * Version: 2.7.0
+ * Version: 2.7.1
  * Author: Karen Rios
  * Requires PHP: 7.4
  * Requires at least: 5.8
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'KR_DP_VERSION', '2.7.0' );
+define( 'KR_DP_VERSION', '2.7.1' );
 define( 'KR_DP_PLUGIN_FILE', __FILE__ );
 define( 'KR_DP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KR_DP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -231,7 +231,27 @@ function kr_dp_checkout_bs_row() {
 	}
 	$gateways = WC()->payment_gateways()->payment_gateways();
 	$gateway  = isset( $gateways[ $chosen ] ) ? $gateways[ $chosen ] : null;
-	if ( ! $gateway || 'yes' !== $gateway->get_option( 'show_bs', 'no' ) ) {
+	if ( ! $gateway ) {
+		return;
+	}
+
+	// Detalle del recargo: fila propia garantizada aunque la plantilla del
+	// tema no dibuje las lineas de fees estandar de WooCommerce.
+	if ( 'yes' === $gateway->get_option( 'enable_fee', 'no' ) ) {
+		$fee_amount = (float) $gateway->get_option( 'fee_amount', 0 );
+		if ( $fee_amount > 0 ) {
+			$fee_label = trim( (string) $gateway->get_option( 'fee_label', '' ) );
+			if ( '' === $fee_label ) {
+				$fee_label = sprintf( __( 'Comision %s', 'kr-direct-payments' ), $gateway->get_option( 'title', $gateway->get_method_title() ) );
+			}
+			echo '<tr class="kr-dp-fee-detail">';
+			echo '<th>' . esc_html( $fee_label ) . '</th>';
+			echo '<td data-title="' . esc_attr( $fee_label ) . '">+' . wp_kses_post( wc_price( $fee_amount ) ) . ' <small>' . esc_html__( '(incluida en el total)', 'kr-direct-payments' ) . '</small></td>';
+			echo '</tr>';
+		}
+	}
+
+	if ( 'yes' !== $gateway->get_option( 'show_bs', 'no' ) ) {
 		return;
 	}
 	$source = $gateway->get_option( 'bcv_source', 'euro' );
@@ -629,6 +649,7 @@ function kr_dp_i18n_map( $lang ) {
 			'Monto a pagar en Bs.'                           => 'Amount to pay in Bs.',
 			'Tasa BCV (%s)'                                  => 'BCV rate (%s)',
 			'Tasa BCV (%1$s) del dia: %2$s'                  => 'BCV rate (%1$s) today: %2$s',
+			'(incluida en el total)'                         => '(included in the total)',
 		);
 	} else {
 		// Spanish with proper accents / punctuation.

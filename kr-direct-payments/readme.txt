@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.7.0
+Stable tag: 2.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ Compatibilidad:
 Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
 
 == Changelog ==
+= 2.7.1 =
+* El recargo ahora aparece DETALLADO como linea propia en el resumen del checkout ("Comision Pago Movil +$5.00 (incluida en el total)"), garantizado aunque el tema no dibuje las lineas de fees estandar de WooCommerce.
+* La tarjeta de pago (pagina de gracias y correos) tambien desglosa el recargo junto al monto y la conversion en Bs.
+
 = 2.7.0 =
 * Corregido: el recargo fijo no se sumaba en el checkout clasico. El hook se registraba en el constructor de cada pasarela y WooCommerce puede construirlas despues de calcular los totales; ahora es un hook global que carga las pasarelas a tiempo (aplica a recargo y descuento, en Pago Movil, Transferencia y todos los metodos).
 * Corregido: logo roto en el checkout (ej. Zelle). Si la imagen del logo no carga, se oculta sola en vez de mostrar el icono roto del navegador (checkout clasico y Blocks).
