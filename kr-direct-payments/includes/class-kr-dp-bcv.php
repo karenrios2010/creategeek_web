@@ -137,36 +137,57 @@ class KR_DP_BCV {
 	}
 
 	/**
-	 * Try each source in order until one returns rates. The BCV site blocks
-	 * many datacenter IP ranges, so two community mirrors of the official
-	 * rate act as fallbacks. Filterable via 'kr_dp_bcv_source_order'.
+	 * Query the sources in order, MERGING results until both EUR and USD
+	 * are filled (a source that only publishes USD, like dolarapi, no
+	 * longer stops the search for the euro rate). The BCV site blocks many
+	 * datacenter IP ranges, so mirrors of the official rate act as
+	 * fallbacks. Filterable via 'kr_dp_bcv_source_order'.
 	 *
 	 * @return array|false
 	 */
 	protected static function fetch() {
-		$order = (array) apply_filters( 'kr_dp_bcv_source_order', array( 'bcv', 'pydolarve', 'dolarapi' ) );
+		$order = (array) apply_filters( 'kr_dp_bcv_source_order', array( 'bcv', 'pydolarve', 'dolarapi', 'erapi' ) );
+
+		$rates = array();
+		$used  = array();
 
 		foreach ( $order as $source_id ) {
-			$rates = false;
+			if ( ! empty( $rates['euro'] ) && ! empty( $rates['dolar'] ) ) {
+				break;
+			}
+			$result = false;
 			switch ( $source_id ) {
 				case 'bcv':
-					$rates = self::fetch_bcv_html();
+					$result = self::fetch_bcv_html();
 					break;
 				case 'pydolarve':
-					$rates = self::fetch_pydolarve();
+					$result = self::fetch_pydolarve();
 					break;
 				case 'dolarapi':
-					$rates = self::fetch_dolarapi();
+					$result = self::fetch_dolarapi();
+					break;
+				case 'erapi':
+					$result = self::fetch_erapi( $rates );
 					break;
 			}
-			if ( is_array( $rates ) && ( ! empty( $rates['euro'] ) || ! empty( $rates['dolar'] ) ) ) {
-				$rates['source'] = $source_id;
-				$rates['date']   = current_time( 'mysql' );
-				return $rates;
+			if ( ! is_array( $result ) ) {
+				continue;
+			}
+			foreach ( array( 'euro', 'dolar' ) as $slot ) {
+				if ( empty( $rates[ $slot ] ) && ! empty( $result[ $slot ] ) ) {
+					$rates[ $slot ] = $result[ $slot ];
+					$used[ $slot ]  = $source_id;
+				}
 			}
 		}
 
-		return false;
+		if ( empty( $rates['euro'] ) && empty( $rates['dolar'] ) ) {
+			return false;
+		}
+
+		$rates['source'] = implode( '+', array_unique( array_values( $used ) ) );
+		$rates['date']   = current_time( 'mysql' );
+		return $rates;
 	}
 
 	/**
@@ -231,23 +252,33 @@ class KR_DP_BCV {
 	 * @return array|false
 	 */
 	protected static function fetch_pydolarve() {
-		$body = self::http_get( 'https://pydolarve.org/api/v1/dollar?page=bcv' );
-		if ( '' === $body ) {
-			return false;
-		}
-		$data = json_decode( $body, true );
-		if ( ! is_array( $data ) ) {
-			return false;
-		}
-		$monitors = isset( $data['monitors'] ) && is_array( $data['monitors'] ) ? $data['monitors'] : $data;
+		$urls = array(
+			'https://pydolarve.org/api/v1/dollar?page=bcv',
+			'https://pydolarve.org/api/v2/dollar?page=bcv',
+		);
 
-		$rates = array();
-		foreach ( array( 'eur' => 'euro', 'usd' => 'dolar' ) as $key => $slot ) {
-			if ( isset( $monitors[ $key ]['price'] ) && (float) $monitors[ $key ]['price'] > 0 ) {
-				$rates[ $slot ] = round( (float) $monitors[ $key ]['price'], 8 );
+		foreach ( $urls as $url ) {
+			$body = self::http_get( $url );
+			if ( '' === $body ) {
+				continue;
+			}
+			$data = json_decode( $body, true );
+			if ( ! is_array( $data ) ) {
+				continue;
+			}
+			$monitors = isset( $data['monitors'] ) && is_array( $data['monitors'] ) ? $data['monitors'] : $data;
+
+			$rates = array();
+			foreach ( array( 'eur' => 'euro', 'usd' => 'dolar' ) as $key => $slot ) {
+				if ( isset( $monitors[ $key ]['price'] ) && (float) $monitors[ $key ]['price'] > 0 ) {
+					$rates[ $slot ] = round( (float) $monitors[ $key ]['price'], 8 );
+				}
+			}
+			if ( $rates ) {
+				return $rates;
 			}
 		}
-		return $rates ? $rates : false;
+		return false;
 	}
 
 	/**
@@ -272,6 +303,33 @@ class KR_DP_BCV {
 			}
 		}
 		return $price > 0 ? array( 'dolar' => round( $price, 8 ) ) : false;
+	}
+
+	/**
+	 * Source 4 (last resort): open.er-api.com, a global FX API whose VES
+	 * value tracks the official rate. Used to fill whichever currency the
+	 * previous sources could not provide (typically EUR). Only requests
+	 * the missing currencies.
+	 *
+	 * @param array $have Rates already collected.
+	 * @return array|false
+	 */
+	protected static function fetch_erapi( $have = array() ) {
+		$rates = array();
+		foreach ( array( 'EUR' => 'euro', 'USD' => 'dolar' ) as $currency => $slot ) {
+			if ( ! empty( $have[ $slot ] ) ) {
+				continue;
+			}
+			$body = self::http_get( 'https://open.er-api.com/v6/latest/' . $currency );
+			if ( '' === $body ) {
+				continue;
+			}
+			$data = json_decode( $body, true );
+			if ( isset( $data['rates']['VES'] ) && (float) $data['rates']['VES'] > 0 ) {
+				$rates[ $slot ] = round( (float) $data['rates']['VES'], 8 );
+			}
+		}
+		return $rates ? $rates : false;
 	}
 }
 

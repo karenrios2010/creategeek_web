@@ -4,7 +4,7 @@ Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.5.1
+Stable tag: 2.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,15 @@ Compatibilidad:
 Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
 
 == Changelog ==
+= 2.6.0 =
+* Las fuentes ahora se COMBINAN: si una solo entrega USD (dolarapi), se sigue buscando la tasa EUR en las demas en vez de detenerse.
+* Nueva fuente de ultimo recurso open.er-api.com (EUR y USD oficiales aproximados) para garantizar que la tasa euro siempre este disponible.
+* pydolarve ahora prueba dos rutas del API (v1 y v2).
+* El indicador muestra las fuentes combinadas y alerta en rojo si el metodo usa EUR y ninguna fuente la entrego.
+
+= 2.5.1 =
+* El indicador de ajustes muestra la tasa con los 8 decimales exactos que publica el BCV.
+
 = 2.5.0 =
 * Fuentes de respaldo para la tasa oficial: si bcv.org.ve no responde (bloquea IPs de datacenters), se consulta pydolarve.org (EUR y USD) y luego ve.dolarapi.com (USD).
 * El indicador de estado ahora hace una prueba en vivo en cada carga de la pagina de ajustes y muestra que fuente funciono.
