@@ -1,0 +1,54 @@
+=== KR Direct Payments ===
+Contributors: karenrios
+Tags: woocommerce, payment gateway, zelle, pago movil, binance, bank transfer
+Requires at least: 5.8
+Tested up to: 6.9
+Requires PHP: 7.4
+Stable tag: 1.1.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Metodos de pago manuales para WooCommerce: Zelle, Transferencia Bancaria, Pago Movil y Binance. Apariencia configurable, formulario de verificacion y carga de comprobante.
+
+== Description ==
+KR Direct Payments agrega cuatro pasarelas de pago manuales a WooCommerce, pensadas para Venezuela y pagos directos:
+
+* Zelle
+* Transferencia Bancaria (con bancos de Venezuela)
+* Pago Movil / InstaPago (con QR)
+* Binance (Pay ID / wallet + QR)
+
+Cada metodo:
+
+* Muestra al cliente los datos de pago con botones de copiar.
+* Muestra un formulario de verificacion adaptado al metodo.
+* Permite adjuntar el comprobante (captura) en JPG, PNG, WEBP o PDF.
+* Es 100% configurable desde el admin: colores (variables CSS), tipografia, radios, iconos/logo y mensajes.
+* Soporta descuento opcional por metodo.
+* Soporta recargo fijo por metodo (por defecto $5 en Transferencia Bancaria y Pago Movil), aplicado y retirado en vivo al cambiar de metodo.
+* Muestra el total a pagar en Bs. calculado con la tasa oficial del BCV (euro del dia por defecto, dolar opcional) en el checkout, la pagina de pedido recibido, los correos y el admin. La tasa se congela en el pedido al momento de la compra.
+
+Compatibilidad:
+
+* HPOS (almacenamiento de pedidos de alto rendimiento).
+* WooCommerce Cart/Checkout Blocks.
+* PHP 7.4 a 8.x.
+
+== Installation ==
+1. Sube la carpeta kr-direct-payments a /wp-content/plugins/ o instala el ZIP desde Plugins > Anadir nuevo > Subir plugin.
+2. Activa el plugin.
+3. Ve a WooCommerce > Ajustes > Pagos y configura cada metodo (Zelle, Transferencia Bancaria, Pago Movil, Binance).
+
+Nota: si tenias el plugin "KR Zelle Gateway" por separado, desactivalo antes de activar este. La configuracion de Zelle se conserva porque usa el mismo identificador (kr_zelle).
+
+== Changelog ==
+= 1.1.0 =
+* Recargo fijo configurable por metodo de pago (activado por defecto con $5 en Transferencia Bancaria y Pago Movil). Se recalcula en vivo en el checkout clasico y en Checkout Blocks.
+* Total a pagar en Bs. segun la tasa oficial publicada por el BCV (bcv.org.ve): euro del dia por defecto, dolar opcional. Cache de 3 horas con respaldo de la ultima tasa conocida.
+* La tasa y el monto en Bs. se guardan en el pedido al comprar y se muestran en el checkout, pedido recibido, correos y pantalla de pedido del admin.
+
+= 1.0.0 =
+* Version inicial unificada: Zelle + Transferencia Bancaria + Pago Movil + Binance.
+* Formulario de verificacion por metodo y carga de comprobante.
+* Apariencia configurable (colores, tipografia, iconos) por metodo.
+* Compatibilidad con HPOS y Checkout Blocks.

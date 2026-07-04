@@ -1,0 +1,183 @@
+/* KR Direct Payments — order-received styling. All colors come from CSS vars
+   injected per-gateway, so everything is configurable from the admin. */
+
+.kr-dp {
+	margin: 18px auto;
+	font-size: var(--krdp-font-base, 16px);
+	color: #222;
+}
+
+.kr-dp * {
+	box-sizing: border-box;
+}
+
+.kr-dp-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 18px;
+	border-radius: var(--krdp-radius, 12px) var(--krdp-radius, 12px) 0 0;
+	background: linear-gradient(135deg, var(--krdp-accent, #6d1ed4), var(--krdp-accent2, #8a3ffc));
+	color: var(--krdp-header-text, #fff);
+}
+
+.kr-dp-head-title {
+	font-size: var(--krdp-font-title, 22px);
+	font-weight: 700;
+}
+
+.kr-dp-intro {
+	margin: 12px 2px;
+	line-height: 1.5;
+}
+
+.kr-dp-card {
+	border: 1px solid var(--krdp-border, rgba(127, 127, 127, .3));
+	border-radius: var(--krdp-radius, 12px);
+	overflow: hidden;
+	margin-bottom: 16px;
+}
+
+.kr-dp-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 11px 14px;
+	border-bottom: 1px solid var(--krdp-border, rgba(127, 127, 127, .3));
+}
+
+.kr-dp-row:last-child {
+	border-bottom: 0;
+}
+
+.kr-dp-row-label {
+	font-weight: 600;
+	opacity: .85;
+}
+
+.kr-dp-row-value {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	word-break: break-word;
+}
+
+.kr-dp-amount .kr-dp-row-value {
+	font-size: var(--krdp-font-amount, 20px);
+	font-weight: 700;
+	color: var(--krdp-accent, #6d1ed4);
+}
+
+.kr-dp-copy {
+	border: 0;
+	cursor: pointer;
+	margin-left: 8px;
+	padding: 3px 9px;
+	font-size: 12px;
+	border-radius: 999px;
+	background: var(--krdp-accent, #6d1ed4);
+	color: var(--krdp-btn-text, #fff);
+}
+
+.kr-dp-copy.is-done {
+	background: var(--krdp-success, #1aa06d);
+}
+
+.kr-dp-qr {
+	text-align: center;
+	margin: 6px 0 18px;
+}
+
+.kr-dp-qr img {
+	max-width: 220px;
+	height: auto;
+	border-radius: 8px;
+}
+
+.kr-dp-verify-title {
+	font-size: var(--krdp-font-title, 22px);
+	color: var(--krdp-accent, #6d1ed4);
+	margin: 6px 0 12px;
+}
+
+.kr-dp-field {
+	margin-bottom: 12px;
+}
+
+.kr-dp-field label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.kr-dp-req {
+	color: #e02424;
+}
+
+.kr-dp-field input,
+.kr-dp-field select {
+	width: 100%;
+	padding: 11px 12px;
+	border: 1px solid var(--krdp-accent, #6d1ed4);
+	border-radius: var(--krdp-radius, 12px);
+	background: var(--krdp-field-bg, #fff5f7);
+	font-size: var(--krdp-font-base, 16px);
+}
+
+.kr-dp-field input[type="file"] {
+	background: #fff;
+	padding: 9px;
+}
+
+.kr-dp-hint {
+	display: block;
+	margin-top: 4px;
+	color: #777;
+	font-size: 12px;
+}
+
+.kr-dp-submit {
+	width: 100%;
+	border: 0;
+	cursor: pointer;
+	padding: 13px 18px;
+	margin-top: 6px;
+	font-size: 16px;
+	font-weight: 700;
+	border-radius: var(--krdp-radius, 12px);
+	background: var(--krdp-accent, #6d1ed4);
+	color: var(--krdp-btn-text, #fff);
+}
+
+.kr-dp-submit[disabled] {
+	opacity: .6;
+	cursor: default;
+}
+
+.kr-dp-msg {
+	margin-top: 12px;
+	padding: 0;
+}
+
+.kr-dp-msg.is-error {
+	color: #e02424;
+}
+
+.kr-dp-msg.is-ok {
+	color: var(--krdp-success, #1aa06d);
+	font-weight: 600;
+}
+
+.kr-dp-done {
+	padding: 14px;
+	border-radius: var(--krdp-radius, 12px);
+	background: rgba(26, 160, 109, .12);
+	color: var(--krdp-success, #1aa06d);
+	font-weight: 600;
+}
+
+.kr-dp-support {
+	margin-top: 12px;
+	color: #777;
+	font-size: 13px;
+}
